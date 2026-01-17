@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Kategorie{% endblock %}
+
+{% block content %}
+<div class="category-page" style="display:flex;">
+    <!-- LEWY SIDEBAR: lista kategorii -->
+    <div class="category-list" style="width:200px; margin-right:20px;">
+        <h3>Kategorie</h3>
+        <ul>
+            {% for cat in categories %}
+                <li>
+                    {% if cat == selected_category %}
+                        <strong>{{ cat }}</strong>
+                    {% else %}
+                        <a href="/kategorie/{{ cat }}">{{ cat }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- PRAWY CONTENT: posty w kategorii -->
+    <div class="category-posts" style="flex:1;">
+        {% if posts %}
+            {% for post in posts %}
+                {% include "partials/post-preview.html" | safe %}
+            {% endfor %}
+
+        {{ pagination_html | safe }}
+            
+
+        {% elif selected_category %}
+            <p>Brak postów w tej kategorii.</p>
+        {% else %}
+            <p>Wybierz kategorię po lewej.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

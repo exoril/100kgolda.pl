@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="date" content="{{ post.seo_date }}">
+{% endblock %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    {% if post.thumbnail %}
+        <img class="post-inside-thumbnail" src="{{ post.thumbnail }}" alt="Thumbnail {{ post.title }}">
+    {% endif %}
+    <div class="post-content-meta">
+        <p><small><a href="/kategorie/{{ post.category }}">{{ post.category }}</a> | {{ post.created }} | {{ post.creator }}</small></p>
+    </div>
+    <div class="post-content">
+        {{ post.content | safe }}
+    </div>
+{% endblock %}

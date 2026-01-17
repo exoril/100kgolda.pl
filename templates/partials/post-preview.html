@@ -1,0 +1,14 @@
+<div class="post-preview">
+    <a href="/post/{{ post.slug | urlencode }}"><img class="post-thumbnail" src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}" 
+         alt="Thumbnail {{ post.title }}"></a>
+    <div>
+        <h2><a href="/post/{{ post.slug | urlencode }}">{{ post.title }}</a></h2>
+        <div class="post-meta">
+            <a class="category-link" href="/kategorie/{{ post.category }}">{{ post.category }}</a> 
+            | {{ post.created }}
+            | {{ post.creator }}
+        </div>
+        <p>{{ post.excerpt }} <a href="/post/{{ post.slug | urlencode }}">Czytaj dalej →</a></p>
+    </div>
+</div>
+<hr>
