@@ -58,7 +58,6 @@ body {
 
 /* FOOTER */
 .footer {
-    position: sticky;
     bottom: 0;
     background: #222222;
     padding: 12px;
