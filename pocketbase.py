@@ -7,6 +7,28 @@ PB_URL = "http://127.0.0.1:8090"
 POSTS_COLLECTION = "posts"
 MAX_EXCERPT_LENGTH = 500
 
+def search_posts_simple(query: str, page: int = 1, per_page: int = 5):
+    url = f"{PB_URL}/api/collections/{POSTS_COLLECTION}/records"
+    params = {
+        "filter": f'published=true && (title ~ "{query}" || content ~ "{query}")',
+        "sort": "-created",
+        "page": page,
+        "perPage": per_page,
+    }
+
+    resp = requests.get(url, params=params)
+    if resp.status_code != 200:
+        return [], 0
+
+    data = resp.json()
+    items = data.get("items", [])
+    total_items = data.get("totalItems", 0)
+    total_pages = (total_items + per_page - 1) // per_page
+
+    posts = [normalize_post(post) for post in items]
+    return posts, total_pages
+
+
 def get_post_count():
     url = f"{PB_URL}/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": "published=true", "perPage": 1}

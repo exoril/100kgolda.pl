@@ -1,20 +1,23 @@
 {% if total_pages > 1 %}
-
 <div class="pagination">
+    {# poprzednia strona #}
+    {% set sep = '&' if '?' in base_url else '?' %}
     {% if page > 1 %}
-        <a href="{{ base_url }}?page={{ page - 1 }}">« Poprzednia</a>
+        <a href="{{ base_url }}{{ sep }}page={{ page - 1 }}">« Poprzednia</a>
     {% endif %}
 
+    {# numery stron #}
     {% for p in range(1, total_pages + 1) %}
         {% if p == page %}
             <strong>{{ p }}</strong>
         {% else %}
-            <a href="{{ base_url }}?page={{ p }}">{{ p }}</a>
+            <a href="{{ base_url }}{{ sep }}page={{ p }}">{{ p }}</a>
         {% endif %}
     {% endfor %}
 
+    {# następna strona #}
     {% if page < total_pages %}
-        <a href="{{ base_url }}?page={{ page + 1 }}">Następna »</a>
+        <a href="{{ base_url }}{{ sep }}page={{ page + 1 }}">Następna »</a>
     {% endif %}
 </div>
 {% endif %}

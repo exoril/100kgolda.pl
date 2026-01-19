@@ -1,0 +1,16 @@
+{% if posts %}
+    {% for post in posts %}
+        {% include "partials/post-preview.html" | safe %}
+    {% endfor %}
+
+    {% if pagination_html %}
+        {{ pagination_html | safe }}
+    {% endif %}
+
+{% else %}
+    {% if context_name %} {# np. selected_category lub query #}
+        <p>Brak wyników dla "{{ context_name }}"</p>
+    {% else %}
+        <p>Brak postów do wyświetlenia.</p>
+    {% endif %}
+{% endif %}

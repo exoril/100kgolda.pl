@@ -1,3 +1,11 @@
 <p>
     Wszystkich wpisów: <strong> {{ post_count }} </strong>
 </p>
+
+<br>
+
+<h3>Szukaj</h3>
+    <form method="get" action="/search">
+        <input type="text" name="q" placeholder="Szukaj..." />
+        <button type="submit">Szukaj</button>
+    </form>

@@ -4,17 +4,6 @@
 
 {% block content %}
 
-    {% if posts %}
-        {% for post in posts %}
-            {% include "partials/post-preview.html" | safe %}
-        {% endfor %}
-        
-            
-        {{ pagination_html | safe }}
-            
-
-    {% else %}
-        <p>Brak opublikowanych postów.</p>
-    {% endif %}
+    {% include "partials/post-list.html" with context %}
 
 {% endblock %}

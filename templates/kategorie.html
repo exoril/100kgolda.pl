@@ -22,19 +22,9 @@
 
     <!-- PRAWY CONTENT: posty w kategorii -->
     <div class="category-posts" style="flex:1;">
-        {% if posts %}
-            {% for post in posts %}
-                {% include "partials/post-preview.html" | safe %}
-            {% endfor %}
-
-        {{ pagination_html | safe }}
-            
-
-        {% elif selected_category %}
-            <p>Brak postów w tej kategorii.</p>
-        {% else %}
-            <p>Wybierz kategorię po lewej.</p>
-        {% endif %}
+        
+        {% include "partials/post-list.html" with context %}
+        
     </div>
 </div>
 {% endblock %}

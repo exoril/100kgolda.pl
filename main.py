@@ -12,8 +12,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
-from jinja2 import Template
-
 def render_template(request: Request, template_name: str, context: dict | None = None):
     ctx = {
         "request": request,
@@ -38,6 +36,7 @@ def render_pagination(request: Request, page: int, total_pages: int, base_url: s
     )
 
 
+
 @app.get("/post/{slug}", response_class=HTMLResponse)
 def post_detail(request: Request, slug: str):
     slug_decoded = slug  # FastAPI automatycznie dekoduje URL
@@ -57,6 +56,7 @@ def index(request: Request, page: int = Query(1, ge=1)):
     "page": page,
     "total_pages": total_pages,
     "pagination_html": pagination_html,
+    "context_name": None
 })
 
 
@@ -122,3 +122,26 @@ async def not_found(request: Request, exc: HTTPException):
         {"request": request},
         status_code=status.HTTP_404_NOT_FOUND
     )
+
+@app.get("/search", response_class=HTMLResponse)
+def search(request: Request, q: str = Query("", min_length=0), page: int = Query(1, ge=1)):
+    posts = []
+    total_pages = 0
+    pagination_html = ""
+
+    if q:
+        posts, total_pages = search_posts_simple(q, page)  # Funkcja w pocketbase.py
+
+        if total_pages > 0 and page > total_pages:
+            raise HTTPException(status_code=404, detail="Strona nie istnieje")
+
+        base_url = f"/search?q={q}"
+        pagination_html = render_pagination(request, page, total_pages, base_url=base_url)
+
+    return render_template(request, "search.html", {
+        "query": q,
+        "posts": posts,
+        "pagination_html": pagination_html,
+        "page": page,
+        "total_pages": total_pages,
+    })
