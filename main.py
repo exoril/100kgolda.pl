@@ -50,6 +50,10 @@ def post_detail(request: Request, slug: str):
 def index(request: Request, page: int = Query(1, ge=1)):
     posts, total_pages = get_all_posts(page)
     pagination_html = render_pagination(request, page, total_pages, base_url="/")
+
+    # jeśli nie ma postów i page > 1 → 404
+    if total_pages > 0 and page > total_pages:
+        raise HTTPException(status_code=404, detail="Strona nie istnieje")
     
     return render_template(request, "index.html", {
     "posts": posts,

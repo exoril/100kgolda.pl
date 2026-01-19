@@ -3,7 +3,10 @@
 {% block title %}404- nie znaleziono{% endblock %}
 
 {% block content %}
-<h1>404 – nie znaleziono</h1>
-<p>Strona, której szukasz, nie istnieje.</p>
-<a href="/">Wróć do strony głównej</a>
+    <div class="error404">
+        <h1>404 – nie znaleziono</h1>
+        <img src="static/404.jpg" style="width:480px">
+        <p>Strona, której szukasz, nie istnieje.</p>
+        <a href="/">Wróć do strony głównej</a>
+    </div>
 {% endblock %}

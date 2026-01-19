@@ -1,11 +1,7 @@
-<p>
-    Wszystkich wpisów: <strong> {{ post_count }} </strong>
-</p>
+<ul>
+    <li><p>Wpisów: <strong> {{ post_count }} </strong></p></li>
 
-<br>
-
-<h3>Szukaj</h3>
-    <form method="get" action="/search">
+    <li><form method="get" action="/search" class="searchbox">
         <input type="text" name="q" placeholder="Szukaj..." />
-        <button type="submit">Szukaj</button>
-    </form>
+    </form></li>
+</ul>

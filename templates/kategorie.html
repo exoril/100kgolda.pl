@@ -3,10 +3,9 @@
 {% block title %}Kategorie{% endblock %}
 
 {% block content %}
-<div class="category-page" style="display:flex;">
-    <!-- LEWY SIDEBAR: lista kategorii -->
-    <div class="category-list" style="width:200px; margin-right:20px;">
-        <h3>Kategorie</h3>
+<div class="category-page">
+    <div class="category-list">
+        <h1>Kategorie</h1>
         <ul>
             {% for cat in categories %}
                 <li>
@@ -20,11 +19,8 @@
         </ul>
     </div>
 
-    <!-- PRAWY CONTENT: posty w kategorii -->
-    <div class="category-posts" style="flex:1;">
-        
+    <div class="category-posts"> 
         {% include "partials/post-list.html" with context %}
-        
     </div>
 </div>
 {% endblock %}
