@@ -47,6 +47,7 @@ def index(request: Request, page: int = Query(1, ge=1)):
             "page": page,
             "total_pages": total_pages,
             "pagination_html": pagination_html,
+            "post_count": get_post_count(),
 })
 
 
@@ -59,7 +60,8 @@ def categories_root(request: Request):
             "request": request,
             "categories": categories,
             "posts": [],          # brak postów na starcie
-            "selected_category": None
+            "selected_category": None,
+            "post_count": get_post_count(),
         }
     )
 

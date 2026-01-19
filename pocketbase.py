@@ -7,6 +7,16 @@ PB_URL = "http://127.0.0.1:8090"
 POSTS_COLLECTION = "posts"
 MAX_EXCERPT_LENGTH = 500
 
+def get_post_count():
+    url = f"{PB_URL}/api/collections/{POSTS_COLLECTION}/records"
+    params = {"filter": "published=true", "perPage": 1}
+    resp = requests.get(url, params=params)
+
+    if resp.status_code != 200:
+        return 0
+
+    data = resp.json()
+    return data.get("totalItems", 0)
 
 def strip_html(html_text: str) -> str:
     """Usuwa tagi HTML i dekoduje encje (np. &oacute; → ó)."""
