@@ -14,6 +14,17 @@ templates = Jinja2Templates(directory="templates")
 
 from jinja2 import Template
 
+def render_template(request: Request, template_name: str, context: dict | None = None):
+    ctx = {
+        "request": request,
+        "post_count": get_post_count(),
+    }
+    if context:
+        ctx.update(context)
+
+    return templates.TemplateResponse(template_name, ctx)
+
+
 def render_pagination(request: Request, page: int, total_pages: int, base_url: str) -> str:
     """
     Renderuje partial pagination.html z przekazanymi zmiennymi.
@@ -33,7 +44,7 @@ def post_detail(request: Request, slug: str):
     post = get_post_by_slug(slug_decoded)
     if not post:
         raise HTTPException(status_code=404, detail="Post nie znaleziony")
-    return templates.TemplateResponse("post.html", {"request": request, "post": post})
+    return render_template(request, "post.html", {"post": post})
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -41,29 +52,23 @@ def index(request: Request, page: int = Query(1, ge=1)):
     posts, total_pages = get_all_posts(page)
     pagination_html = render_pagination(request, page, total_pages, base_url="/")
     
-    return templates.TemplateResponse("index.html", {
-            "request": request,
-            "posts": posts,
-            "page": page,
-            "total_pages": total_pages,
-            "pagination_html": pagination_html,
-            "post_count": get_post_count(),
+    return render_template(request, "index.html", {
+    "posts": posts,
+    "page": page,
+    "total_pages": total_pages,
+    "pagination_html": pagination_html,
 })
 
 
 @app.get("/kategorie", response_class=HTMLResponse)
 def categories_root(request: Request):
     categories = get_all_categories()
-    return templates.TemplateResponse(
-        "kategorie.html",
-        {
-            "request": request,
-            "categories": categories,
-            "posts": [],          # brak postów na starcie
-            "selected_category": None,
-            "post_count": get_post_count(),
-        }
-    )
+    return render_template(request, "kategorie.html", {
+        "categories": categories,
+        "posts": [],
+        "selected_category": None,
+    })
+
 
 from fastapi import HTTPException, Query
 
@@ -85,8 +90,7 @@ def category_page(request: Request, slug: str, page: int = Query(1, ge=1)):
     # generujemy HTML paginacji
     pagination_html = render_pagination(request, page, total_pages, base_url=f"/kategorie/{slug}")
 
-    return templates.TemplateResponse("kategorie.html", {
-        "request": request,
+    return render_template(request, "kategorie.html", {
         "categories": categories,
         "selected_category": slug,
         "posts": posts,
@@ -98,26 +102,17 @@ def category_page(request: Request, slug: str, page: int = Query(1, ge=1)):
 
 @app.get("/o-mnie", response_class=HTMLResponse)
 def o_mnie(request: Request):
-    return templates.TemplateResponse(
-        "o-mnie.html",
-        {"request": request}
-    )
+     return render_template(request, "o-mnie.html")
 
 
 @app.get("/o-blogu", response_class=HTMLResponse)
 def o_blogu(request: Request):
-    return templates.TemplateResponse(
-        "o-blogu.html",
-        {"request": request}
-    )
+     return render_template(request, "o-blogu.html")
 
 
 @app.get("/kontakt", response_class=HTMLResponse)
 def kontakt(request: Request):
-    return templates.TemplateResponse(
-        "kontakt.html",
-        {"request": request}
-    )
+     return render_template(request, "kontakt.html")
 
 # 404 handler
 @app.exception_handler(404)
