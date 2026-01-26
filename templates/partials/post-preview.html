@@ -1,12 +1,24 @@
 <div class="post-preview">
-    <a href="/post/{{ post.slug | urlencode }}"><img class="post-thumbnail" src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}" 
-         alt="Thumbnail {{ post.title }}"></a>
+    <div class="post-preview-left">
+        <a href="/post/{{ post.slug | urlencode }}">
+            <img class="post-thumbnail"
+                 src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}"
+                 alt="Thumbnail {{ post.title }}"
+                 loading:="lazy" 
+                 decoding="async">
+        </a>
+    </div>
+    <div class="post-preview-right">
         <h2><a href="/post/{{ post.slug | urlencode }}">{{ post.title }}</a></h2>
-        <div class="post-meta">
-            <a class="category-link" href="/kategorie/{{ post.category }}">{{ post.category }}</a> 
+        <div class="post-preview-meta">
+            <a class="category-link" href="/kategorie/{{ post.category }}">{{ post.category }}</a>
             | {{ post.created }}
             | {{ post.creator }}
+            | 👁 {{ post.views }} wyświetleń
+            | {{ post.comment_count }} komentarzy
+            | {{ post.reading_time }} minut(y) czytania
         </div>
-        <p>{{ post.excerpt }} <a href="/post/{{ post.slug | urlencode }}">Czytaj dalej →</a></p>
+        <p class="post-preview-text">{{ post.content | striptags | truncate(500, True, "...") }}
+        <a class="post-preview-readmore" href="/post/{{ post.slug | urlencode }}">czytaj dalej →</a></p>
+    </div>
 </div>
-<hr>

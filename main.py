@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi import HTTPException, status
-from pocketbase import *
-from fastapi import Query
+from app.routes.blog import router as blog_router
+from app.routes.pages import router as pages_router
+from app.routes.errors import register_error_handlers
+from app.pb.client import close_client
+from app.core.logging import setup_logging
+setup_logging()
 
 app = FastAPI()
 
@@ -12,140 +14,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
-def render_template(request: Request, template_name: str, context: dict | None = None):
-    ctx = {
-        "request": request,
-        "post_count": get_post_count(),
-    }
-    if context:
-        ctx.update(context)
+app.state.templates = templates  # <--- ważne
 
-    return templates.TemplateResponse(template_name, ctx)
+app.include_router(blog_router)
+app.include_router(pages_router)
 
+register_error_handlers(app, templates)
 
-def render_pagination(request: Request, page: int, total_pages: int, base_url: str) -> str:
-    """
-    Renderuje partial pagination.html z przekazanymi zmiennymi.
-    Zwraca HTML jako string.
-    """
-    return templates.get_template("partials/pagination.html").render(
-        page=page,
-        total_pages=total_pages,
-        base_url=base_url,
-        request=request   # w razie gdy partial używa {{ request }}
-    )
+@app.on_event("shutdown")
+async def shutdown():
+    await close_client()
 
-
-
-@app.get("/post/{slug}", response_class=HTMLResponse)
-def post_detail(request: Request, slug: str):
-    slug_decoded = slug  # FastAPI automatycznie dekoduje URL
-    post = get_post_by_slug(slug_decoded)
-    if not post:
-        raise HTTPException(status_code=404, detail="Post nie znaleziony")
-    return render_template(request, "post.html", {"post": post})
-
-
-@app.get("/", response_class=HTMLResponse)
-def index(request: Request, page: int = Query(1, ge=1)):
-    posts, total_pages = get_all_posts(page)
-    pagination_html = render_pagination(request, page, total_pages, base_url="/")
-
-    # jeśli nie ma postów i page > 1 → 404
-    if total_pages > 0 and page > total_pages:
-        raise HTTPException(status_code=404, detail="Strona nie istnieje")
-    
-    return render_template(request, "index.html", {
-    "posts": posts,
-    "page": page,
-    "total_pages": total_pages,
-    "pagination_html": pagination_html,
-    "context_name": None
-})
-
-
-@app.get("/kategorie", response_class=HTMLResponse)
-def categories_root(request: Request):
-    categories = get_all_categories()
-    return render_template(request, "kategorie.html", {
-        "categories": categories,
-        "posts": [],
-        "selected_category": None,
-    })
-
-
-from fastapi import HTTPException, Query
-
-@app.get("/kategorie/{slug}", response_class=HTMLResponse)
-def category_page(request: Request, slug: str, page: int = Query(1, ge=1)):
-    categories = get_all_categories()
-
-    # sprawdzamy czy kategoria istnieje
-    if slug not in categories:
-        raise HTTPException(status_code=404, detail="Kategoria nie znaleziona")
-
-    # pobieramy posty z paginacją
-    posts, total_pages = get_posts_by_category(slug, page)
-
-    # jeśli podana strona > total_pages, 404
-    if total_pages > 0 and page > total_pages:
-        raise HTTPException(status_code=404, detail="Strona nie istnieje")
-
-    # generujemy HTML paginacji
-    pagination_html = render_pagination(request, page, total_pages, base_url=f"/kategorie/{slug}")
-
-    return render_template(request, "kategorie.html", {
-        "categories": categories,
-        "selected_category": slug,
-        "posts": posts,
-        "pagination_html": pagination_html,
-        "page": page,
-        "total_pages": total_pages,
-    })
-
-
-@app.get("/o-mnie", response_class=HTMLResponse)
-def o_mnie(request: Request):
-     return render_template(request, "o-mnie.html")
-
-
-@app.get("/o-blogu", response_class=HTMLResponse)
-def o_blogu(request: Request):
-     return render_template(request, "o-blogu.html")
-
-
-@app.get("/kontakt", response_class=HTMLResponse)
-def kontakt(request: Request):
-     return render_template(request, "kontakt.html")
-
-# 404 handler
-@app.exception_handler(404)
-async def not_found(request: Request, exc: HTTPException):
-    return templates.TemplateResponse(
-        "404.html",
-        {"request": request},
-        status_code=status.HTTP_404_NOT_FOUND
-    )
-
-@app.get("/search", response_class=HTMLResponse)
-def search(request: Request, q: str = Query("", min_length=0), page: int = Query(1, ge=1)):
-    posts = []
-    total_pages = 0
-    pagination_html = ""
-
-    if q:
-        posts, total_pages = search_posts_simple(q, page)  # Funkcja w pocketbase.py
-
-        if total_pages > 0 and page > total_pages:
-            raise HTTPException(status_code=404, detail="Strona nie istnieje")
-
-        base_url = f"/search?q={q}"
-        pagination_html = render_pagination(request, page, total_pages, base_url=base_url)
-
-    return render_template(request, "search.html", {
-        "query": q,
-        "posts": posts,
-        "pagination_html": pagination_html,
-        "page": page,
-        "total_pages": total_pages,
-    })

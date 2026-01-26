@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>{% block title %}100kGolda.pl{% endblock %}</title>
+
+  <meta name="description" content="{% block meta_description %}Blog ogólnotematyczny 100kGolda.pl — najnowsze wpisy, ciekawostki i tematy dnia.{% endblock %}">
+  <meta name="robots" content="{% block meta_robots %}index,follow{% endblock %}">
+
+  {# Canonical bez querystringów (#/ ?page=2 itd.) #}
+  <link rel="canonical" href="{% block canonical_url %}{{ request.base_url }}{% endblock %}">
+
+  {# Open Graph #}
+  <meta property="og:site_name" content="100kGolda.pl">
+  <meta property="og:locale" content="pl_PL">
+  <meta property="og:type" content="{% block og_type %}{% endblock %}">
+
+  {% set _title = (self.title() | striptags | trim) %}
+  <meta property="og:title" content="{% block og_title %}{{ _title if _title else '100kGolda.pl' }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
+
+  <meta property="og:image" content="{% block og_image %}{{ request.url_root ~ 'static/og-default.jpg' }}{% endblock %}">
+  <meta property="og:image:alt" content="{% block og_image_alt %}100kGolda.pl{% endblock %}">
+  <meta property="og:image:width" content="{% block og_image_width %}1200{% endblock %}">
+  <meta property="og:image:height" content="{% block og_image_height %}630{% endblock %}">
+
+  {# Twitter #}
+  <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+  <meta name="twitter:title" content="{% block twitter_title %}{{ self.og_title() | striptags | trim }}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{{ self.og_description() | striptags | trim }}{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ self.og_image() | trim }}{% endblock %}">
+
+  <link rel="icon" href="/static/favicon.ico" sizes="any">
+  {# <link rel="apple-touch-icon" href="/static/apple-touch-icon.png"> #}
+
+  <link rel="stylesheet" href="/static/style.css" />
+
+  {% block head_extra %}{% endblock %}
+  <script src="/static/scripts.js" defer></script>
+  {% block scripts_head %}{% endblock %}
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Przejdź do treści</a>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Panel boczny">
+      {% include "partials/sidebar.html" %}
+    </aside>
+
+    <main id="main" class="content" role="main" tabindex="-1">
+      {% block content %}{% endblock %}
+    </main>
+
+    <aside class="widget-bar" aria-label="Widżety">
+      {% include "partials/widget-bar.html" %}
+    </aside>
+  </div>
+
+  <footer class="footer">
+    {% include "partials/footer.html" %}
+  </footer>
+
+  <div class="modal-container" id="modals" aria-live="polite">
+    {% block modals %}{% endblock %}
+  </div>
+
+  <noscript>
+    <div class="noscript">Ta strona działa najlepiej z włączonym JavaScriptem.</div>
+  </noscript>
+
+  {% block scripts_body %}{% endblock %}
+</body>
+</html>

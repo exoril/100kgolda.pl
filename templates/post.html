@@ -1,20 +1,72 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 
 {% block head %}
 <meta name="date" content="{{ post.seo_date }}">
+<meta property="article:published_time" content="{{ post.created }}">
+<meta property="article:author" content="{{ post.creator }}">
 {% endblock %}
 
 {% block title %}{{ post.title }}{% endblock %}
+{% block og_description %}{{ post.content | striptags | truncate(500, True, "...") }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+
 
 {% block content %}
     <h1>{{ post.title }}</h1>
-    {% if post.thumbnail %}
-        <img class="post-inside-thumbnail" src="{{ post.thumbnail }}" alt="Thumbnail {{ post.title }}">
-    {% endif %}
+    
     <div class="post-content-meta">
-        <p><small><a href="/kategorie/{{ post.category }}">{{ post.category }}</a> | {{ post.created }} | {{ post.creator }}</small></p>
+        <p><a href="/kategorie/{{ post.category }}">{{ post.category }}</a> 
+            | {{ post.created }} 
+            | {{ post.creator }} 
+            | 👁 {{post.views}} wyświetleń 
+            | {{ post.comment_count }} komentarzy
+            | {{ post.reading_time }} minut(y) czytania
+            | <a href="#" class="share-link" data-modal="share-modal-{{ post.id }}">Udostępnij</a></p>
     </div>
+    {% if post.thumbnail %}
+        <img class="post-inside-thumbnail" src="{{ post.thumbnail }}" alt="Thumbnail {{ post.title }}" loading="eager" decoding="async">
+    {% endif %}
+    {% include "partials/toc.html" %}
     <div class="post-content">
-        {{ post.content | safe }}
+        {{ lazy_images(post.content) | safe }}
     </div>
+
+    <div class="reactions" data-slug="{{ post.slug }}">
+        <button class="reaction-btn" data-type="like" type="button">👍 <span class="cnt">{{ post.react_like or 0 }}</span></button>
+        <button class="reaction-btn" data-type="love" type="button">❤️ <span class="cnt">{{ post.react_love or 0 }}</span></button>
+        <button class="reaction-btn" data-type="laugh" type="button">😂 <span class="cnt">{{ post.react_laugh or 0 }}</span></button>
+        <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
+    </div>
+
+    <hr style="color: #f7c920">
+        <br>
+
+    <div id="comments" class="comments-container">
+        <div class="comments-section">{% include "partials/comments-section.html" %}
+            
+            {% if comments_total_pages and comments_total_pages > 1 %}
+                <div class="comments-pagination">
+                {% if comments_page > 1 %}
+                    <a href="?cpage={{ comments_page - 1 }}#comments">← Poprzednia</a>
+                {% endif %}
+
+                <span>Strona {{ comments_page }} z {{ comments_total_pages }}</span>
+
+                {% if comments_page < comments_total_pages %}
+                    <a href="?cpage={{ comments_page + 1 }}#comments">Następna →</a>
+                {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+       
+
+        <div class="add-comment">{% include "partials/add_comment.html" %}</div>
+    </div>
+
+{% endblock %}
+
+{% block modals %}
+    {% include "partials/share-modal.html" %}
 {% endblock %}

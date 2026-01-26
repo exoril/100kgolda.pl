@@ -1,26 +1,8 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 
 {% block title %}Kategorie{% endblock %}
 
 {% block content %}
-<div class="category-page">
-    <div class="category-list">
-        <h1>Kategorie</h1>
-        <ul>
-            {% for cat in categories %}
-                <li>
-                    {% if cat == selected_category %}
-                        <strong>{{ cat }}</strong>
-                    {% else %}
-                        <a href="/kategorie/{{ cat }}">{{ cat }}</a>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="category-posts"> 
-        {% include "partials/post-list.html" with context %}
-    </div>
-</div>
+    <h1>Kategoria: <strong>"{{ selected_category }}"</strong></h1>
+    {% include "partials/post-list.html" with context %}
 {% endblock %}

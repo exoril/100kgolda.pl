@@ -1,0 +1,13 @@
+    <h3>Dodaj komentarz</h3>
+    <form action="/post/{{ post.slug }}/comment#comments" method="post">
+        <label for="author">Imię:</label>
+        <input type="text" name="author" id="author" required maxlength="20">
+
+        <label for="email">E-mail (opcjonalnie):</label>
+        <input type="email" name="email" id="email" maxlength="30">
+
+        <label for="content">Komentarz: <span class="chars-container">(pozostało <span id="chars-left">200</span> znaków)</span></label>
+        <textarea name="content" id="comment-content" rows="6" required maxlength="200"></textarea>
+
+        <button type="submit">Wyślij</button>
+    </form>

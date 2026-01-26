@@ -1,0 +1,21 @@
+{% set share_url = request.url._url %}
+
+<div id="share-modal-{{ post.id }}" class="share-modal">
+    <div class="share-modal-overlay"></div>
+    <div class="share-modal-content">
+        <h1>Udostępnij post:</h1>
+        <p>{{ post.title }}</p>
+        <div class="share-buttons">
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ share_url }}" target="_blank" rel="noopener">ⓕ Facebook</a>
+            <a href="https://twitter.com/intent/tweet?url={{ share_url }}&text={{ post.title }}" target="_blank" rel="noopener">𝕏 Twitter/X</a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener">🅾 Instagram</a>
+            <a href="https://api.whatsapp.com/send?text={{ share_url }}" target="_blank" rel="noopener">✆ WhatsApp</a>
+            <br>
+            <a href="#" class="copy-link" data-link="{{ share_url }}">🗐 Kopiuj link</a>
+        </div>
+    </div>
+</div>
+
+<div id="copy-notice" class="copy-notice">
+    <p><span style="font-size:300%;">✔</span><br>Link skopiowany do schowka</p>
+</div>

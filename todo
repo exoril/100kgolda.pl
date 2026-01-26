@@ -1,0 +1,66 @@
+1. pozbyc sie linkow w base64 ze zrodel postow
+
+1. edit w meta posta canonical i og:url po uploadzie na hosting
+
+1. meta dane w head każdego posta
+
+1. responsywność przy resize window
+
+1. naprawić wstawianie obrazków przez rich editor w panelu pocketbase
+
+1. Ograniczyć wypytywanie pocketbase 
+
+1. zrobić widget "serie" podobny do widgeta "categories"
+
+1. Cross-linking
+
+1. zmienic komunikat wymagający email i komentarza w fomularzu komentarzy
+
+1. Pinned post u góry
+
+1. Dodać numerowanie kolejnych postów z danej serii
+
+1. Dodać dump logów do pliku po ewentualnym crashu
+
+1. Dodać uniwersalny modal, który przyjmuje wartości i na ich podstawie wyświetla komunikat, zamiast osobnych modali do każdej funkcji
+
+1. po zahostowaniu strony: zadbać o automatyczne wstawanie strony po błędzie + dump logów do pliku, ważne: ograniczyć zapytania do pocketbase, dodać caching o sporym ttl!
+
+1b. Dodać obsługę newslettera.
+
+1a. Dodać modal z ładowaniem strony z ładnym efektem w CSS
+
+2. Zrobić kolekcję "pages" w PB
+
+3. Zrobić paginację dla więcej niż 10 komentarzy na stronę
+
+4. Zrobić coś z lewym menu w "kategoriach".
+
+5. W prawym sidebarze dodać tagi
+
+5a. W prawym sidebarze dodać "3 najczęściej komentowane posty"
+
+6. Dodać zawartość stron o mnie, o blogu, kontakt, moje projekty
+
+7. Do strony kontakt dodać formularz kontaktowy
+
+8. Dodać w stopce odnośnik do strony z prywatnością i bezpieczeństwem
+
+9. Dodać modalny div z ciasteczkami!
+
+10. Przed uploadem FTP na hosting: zresetować wszystkie views, zrobić dobre zasady korzystania z API w UI PocketBase
+
+11. Dodać captcha do formularza komentarzy
+
+12. Zajać się zabezpieczeniami strony
+
+14: WAŻNE: WSZYSTKIE OBRAZKI DODAĆ DO PB JESZCZE RAZ, ALE Z KRÓTKIMI NAZWAMI (DODAĆ WALIDACJĘ WAGI PLIKU W JAKIŚ SPOSÓB ?)
+
+15: Może: admin panel.
+
+Rss Feed
+
+16. Zapobiec w jakis sposób sytuacji, gdy użytkownik celowo usuwa cookies i odświeża stronę, by nabić wyświetlenia.
+
+17. Dodać prostą, automatyczna moderację komentarzy przed dodaniem (głównie cenzura słów, zapobieganie wklejaniu kodu),
+     maksymalna długość komentarza, dodać paginację do komentarzy, możliwość lajkowania

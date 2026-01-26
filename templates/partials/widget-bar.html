@@ -1,7 +1,88 @@
-<ul>
-    <li><p>Wpisów: <strong> {{ post_count }} </strong></p></li>
 
-    <li><form method="get" action="/search" class="searchbox">
-        <input type="text" name="q" placeholder="Szukaj..." />
-    </form></li>
-</ul>
+
+<div class="searchbox-widget">
+  <form action="/search" method="get">
+    <input
+      type="text"
+      id="search-phrase"
+      name="q"
+      placeholder="Szukaj..."
+      value="{{ query or '' }}"
+    >
+  </form>
+</div>
+
+
+<div class="categories-list-widget">
+  <label for="categories-list">Kategorie</label>
+  <select id="categories-list" name="category">
+    <option value="">Wybierz...</option>
+
+    {% for cat in categories %}
+      <option
+        value="{{ cat }}"
+        {% if selected_category and selected_category == cat %}selected{% endif %}
+      >
+        {{ cat }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="most-viewed-posts-widget">
+  <h3>Najczęściej wyświetlane:</h3>
+
+  {% if top_posts %}
+    <ol>
+      {% for p in top_posts %}
+        <li>
+          <a href="/post/{{ p.slug }}">{{ p.title }}</a>
+          <span class="widget-count">({{ p.views }})</span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="widget-empty">Brak danych.</p>
+  {% endif %}
+</div>
+
+<div class="most-commented-posts-widget">
+  <h3>Najczęściej komentowane:</h3>
+
+  {% if top_commented %}
+    <ol>
+      {% for p in top_commented %}
+        <li>
+          <a href="/post/{{ p.slug }}">{{ p.title }}</a>
+          <span class="widget-count">({{ p.comment_count }})</span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="widget-empty">Brak danych.</p>
+  {% endif %}
+</div>
+
+<div class="newsletter-widget">
+  <h3>Zapisz się do newslettera!</h3>
+
+  <form action="/newsletter" method="post" class="newsletter-form">
+    <label for="newsletter-email" class="sr-only">E-mail</label>
+    <input
+      type="email"
+      id="newsletter-email"
+      name="email"
+      placeholder="Twój e-mail"
+      required
+      maxlength="80"
+      autocomplete="email"
+    >
+
+    <button type="submit">Zapisz</button>
+
+    <p class="newsletter-note">
+      Zero spamu. W każdej chwili możesz się wypisać.
+    </p>
+  </form>
+</div>
+

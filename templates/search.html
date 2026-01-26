@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 
 {% block title %}Wyszukiwanie{% endblock %}
 
 {% block content %}
                 {% if query %}
-                    <h1 style="margin-bottom: 40px">Wyszukiwanie:
+                    <h1>Wyszukiwanie:
                     <strong>"{{ query }}"</strong>
                     {% if total_pages > 1 %}
                     , strona: {{ page }}
@@ -15,4 +15,5 @@
                 {% endif %}
                     </h1>
         {% include "partials/post-list.html" with context %}
+
 {% endblock %}
