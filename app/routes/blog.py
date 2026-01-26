@@ -1,4 +1,5 @@
 from urllib.parse import quote
+import asyncio
 from fastapi import APIRouter, Request, Query, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.status import HTTP_303_SEE_OTHER
@@ -6,11 +7,10 @@ from app.web.render import render_template, render_pagination
 from app.web.toc import build_toc
 from app.pb.posts import (
     get_post_by_slug,
-    increment_post_views,
     get_all_posts,
     get_all_categories,
     get_posts_by_category,
-    search_posts_simple
+    search_posts_simple,
 )
 from app.pb.comments import (
     add_comment_simple,
@@ -64,6 +64,9 @@ async def post_detail(request: Request, slug: str, cpage: int = Query(1, ge=1)):
 
     post["content"], post["toc"] = build_toc(post.get("content", ""))
 
+    # --- NEW: stats get-or-create ---
+    # -------------------------------
+
     comments, comments_total_pages, comments_total_items = await get_comments_by_post_id_paginated(
         post["id"], page=cpage, per_page=10
     )
@@ -78,18 +81,6 @@ async def post_detail(request: Request, slug: str, cpage: int = Query(1, ge=1)):
         "comments_total_pages": comments_total_pages,
         "comments_total_items": comments_total_items,
     })
-
-    cookie_name = f"viewed_post_{post['id']}"
-    if not request.cookies.get(cookie_name):
-        await increment_post_views(post["id"])
-        post["views"] += 1
-        response.set_cookie(
-            key=cookie_name,
-            value="1",
-            max_age=60 * 60 * 24 * 30,
-            httponly=True,
-            samesite="lax",
-        )
 
     return response
 
@@ -186,3 +177,4 @@ async def search(request: Request, q: str = Query("", min_length=0), page: int =
         "page": page,
         "total_pages": total_pages,
     })
+

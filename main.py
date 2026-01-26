@@ -6,7 +6,7 @@ from app.routes.pages import router as pages_router
 from app.routes.errors import register_error_handlers
 from app.pb.client import close_client
 from app.core.logging import setup_logging
-setup_logging()
+# setup_logging()
 
 app = FastAPI()
 

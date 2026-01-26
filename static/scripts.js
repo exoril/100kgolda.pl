@@ -119,3 +119,40 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "/kategorie/" + encodeURIComponent(v);
     });
   });
+
+(() => {
+  const COOKIE_NAME = "cookie_consent_ack";
+  const modal = document.getElementById("cookieConsent");
+  const okBtn = document.getElementById("cookieConsentOk");
+  if (!modal || !okBtn) return;
+
+  function getCookie(name){
+    const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
+  function setConsentCookie(){
+    // ~10 lat ważności (praktycznie "do skasowania cookies")
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 10);
+
+    const secure = (location.protocol === "https:") ? "; Secure" : "";
+    document.cookie =
+      COOKIE_NAME + "=1" +
+      "; Expires=" + d.toUTCString() +
+      "; Path=/" +
+      "; SameSite=Lax" +
+      secure;
+  }
+
+  // pokaż modal tylko jeśli nie ma cookie
+  if (!getCookie(COOKIE_NAME)) {
+    modal.hidden = false;
+    setTimeout(() => okBtn.focus(), 0);
+  }
+
+  okBtn.addEventListener("click", () => {
+    setConsentCookie();
+    modal.hidden = true;
+  });
+})();

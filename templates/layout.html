@@ -6,8 +6,8 @@
 
   <title>{% block title %}100kGolda.pl{% endblock %}</title>
 
-  <meta name="description" content="{% block meta_description %}Blog ogólnotematyczny 100kGolda.pl — najnowsze wpisy, ciekawostki i tematy dnia.{% endblock %}">
-  <meta name="robots" content="{% block meta_robots %}index,follow{% endblock %}">
+  <meta name="description" content="{% block meta_description %}{% endblock %}">
+  <meta name="robots" content="{% block meta_robots %}{% endblock %}">
 
   {# Canonical bez querystringów (#/ ?page=2 itd.) #}
   <link rel="canonical" href="{% block canonical_url %}{{ request.base_url }}{% endblock %}">
@@ -22,7 +22,7 @@
   <meta property="og:description" content="{% block og_description %}{% endblock %}">
   <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
 
-  <meta property="og:image" content="{% block og_image %}{{ request.url_root ~ 'static/og-default.jpg' }}{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{% endblock %}">
   <meta property="og:image:alt" content="{% block og_image_alt %}100kGolda.pl{% endblock %}">
   <meta property="og:image:width" content="{% block og_image_width %}1200{% endblock %}">
   <meta property="og:image:height" content="{% block og_image_height %}630{% endblock %}">
@@ -65,6 +65,7 @@
   </footer>
 
   <div class="modal-container" id="modals" aria-live="polite">
+    {% include "/partials/cookie-ack.html" %}
     {% block modals %}{% endblock %}
   </div>
 

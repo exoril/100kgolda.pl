@@ -3,8 +3,8 @@
         <a href="/post/{{ post.slug | urlencode }}">
             <img class="post-thumbnail"
                  src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}"
-                 alt="Thumbnail {{ post.title }}"
-                 loading:="lazy" 
+                 alt="{{ post.title }} - zdjęcie do wpisu"
+                 loading="lazy" 
                  decoding="async">
         </a>
     </div>
@@ -14,8 +14,8 @@
             <a class="category-link" href="/kategorie/{{ post.category }}">{{ post.category }}</a>
             | {{ post.created }}
             | {{ post.creator }}
-            | 👁 {{ post.views }} wyświetleń
-            | {{ post.comment_count }} komentarzy
+            | 👁 {{ post.stats.views_total }} wyświetleń
+            | {{ post.stats.comments_total }} komentarzy
             | {{ post.reading_time }} minut(y) czytania
         </div>
         <p class="post-preview-text">{{ post.content | striptags | truncate(500, True, "...") }}

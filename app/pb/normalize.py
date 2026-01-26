@@ -1,7 +1,7 @@
 import re, html, math
 from datetime import datetime
 
-from app.core.config import PB_URL, POSTS_COLLECTION, SERIES_COLLECTION
+from app.core.config import PB_URL, POSTS_COLLECTION, SERIES_COLLECTION, POST_STATS_COLLECTION
 from app.pb.client import get_client
 from app.pb.comments import get_comment_count_for_post  # (będzie w comments.py)
 
@@ -67,6 +67,7 @@ async def normalize_post(post: dict) -> dict:
     # --- KOMENTARZE (licznik) ---
     comment_count = await get_comment_count_for_post(post.get("id"))
 
+
     return {
         "id": post.get("id"),
         "title": post.get("title", ""),
@@ -77,7 +78,8 @@ async def normalize_post(post: dict) -> dict:
         "thumbnail": get_thumbnail_url(post),
         "content": post.get("content", ""),
         "creator": post.get("creator", "Nieznany autor"),
-        "views": post.get("views", 0),
         "reading_time": estimate_reading_time(post.get("content", "")),
         "comment_count": comment_count,
+        "meta_description": post.get("meta_description", ""),
     }
+

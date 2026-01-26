@@ -1,9 +1,18 @@
-from app.core.config import POSTS_COLLECTION
+from app.core.config import POSTS_COLLECTION, POST_STATS_COLLECTION
 from app.pb.cache import cache_get, cache_set
 from app.pb.client import get_client
 from app.pb.normalize import normalize_post
 from app.pb.comments import get_comment_count_for_post
 import asyncio
+from typing import Dict, Any
+
+DEFAULT_STATS: Dict[str, int] = {
+    "views_total": 0,
+    "comments_total": 0,
+    "reactions_like": 0,
+    "reactions_love": 0,
+    "reactions_laugh": 0,
+}
 
 async def get_top_viewed_posts(limit: int = 3):
     cache_key = f"top_posts:{limit}"
@@ -33,26 +42,6 @@ async def get_top_viewed_posts(limit: int = 3):
 
     cache_set(cache_key, posts)
     return posts
-
-
-async def increment_post_views(post_id: str):
-    client = await get_client()
-    url = f"/api/collections/{POSTS_COLLECTION}/records/{post_id}"
-
-    resp = await client.get(url)
-    if resp.status_code != 200:
-        print("Nie udało się pobrać posta do inkrementacji")
-        return
-
-    data = resp.json()
-    current_views = data.get("views", 0)
-
-    payload = {"views": current_views + 1}
-
-    resp2 = await client.patch(url, json=payload)
-    if resp2.status_code != 200:
-        print("Błąd przy zapisie views:", resp2.text)
-
 
 async def search_posts_simple(query: str, page: int = 1, per_page: int = 5):
     client = await get_client()
@@ -97,23 +86,89 @@ async def get_post_count() -> int:
     total = resp.json().get("totalItems", 0)
     cache_set(cache_key, total)
     return total
+from typing import Dict, Any, Optional
+
+
+async def _get_post_stats_by_post_id(client, post_id: str) -> Optional[Dict[str, Any]]:
+    url = f"/api/collections/{POST_STATS_COLLECTION}/records"
+    params = {"filter": f'post = "{post_id}"', "perPage": 1, "page": 1}
+
+    resp = await client.get(url, params=params)
+    if resp.status_code != 200:
+        print("Błąd pobierania post_stats:", resp.text)
+        return None
+
+    items = (resp.json() or {}).get("items") or []
+    return items[0] if items else None
+
+
+async def _create_post_stats(client, post_id: str) -> Optional[Dict[str, Any]]:
+    url = f"/api/collections/{POST_STATS_COLLECTION}/records"
+    payload = {"post": post_id, **DEFAULT_STATS}
+
+    resp = await client.post(url, json=payload)
+    # PocketBase zwykle zwraca 200 albo 201 po create (zależnie od wersji / proxy)
+    if resp.status_code not in (200, 201):
+        print("Błąd tworzenia post_stats:", resp.text)
+        return None
+
+    return resp.json()
 
 
 async def get_post_by_slug(slug: str):
     client = await get_client()
+
+    # 1) POST
     url = f"/api/collections/{POSTS_COLLECTION}/records"
-    params = {"filter": f'slug = "{slug}"', "perPage": 1}
+    params = {"filter": f'slug = "{slug}"', "perPage": 1, "page": 1}
 
     resp = await client.get(url, params=params)
     if resp.status_code != 200:
-        print("Błąd pobierania posta")
+        print("Błąd pobierania posta:", resp.text)
         return None
 
-    items = resp.json().get("items")
+    items = resp.json().get("items") or []
     if not items:
         return None
 
-    return await normalize_post(items[0])
+    # ✅ normalize_post ZAWSZE
+    post = await normalize_post(items[0])
+
+    # 2) STATS: spróbuj pobrać
+    stats_url = f"/api/collections/{POST_STATS_COLLECTION}/records"
+    stats_params = {"filter": f'post = "{post["id"]}"', "perPage": 1, "page": 1}
+
+    stats_resp = await client.get(stats_url, params=stats_params)
+    stats = None
+    if stats_resp.status_code == 200:
+        stats_items = (stats_resp.json() or {}).get("items") or []
+        if stats_items:
+            stats = stats_items[0]
+
+    # 3) STATS: jak nie ma, to utwórz
+    if not stats:
+        create_resp = await client.post(
+            f"/api/collections/{POST_STATS_COLLECTION}/records",
+            json={"post": post["id"], **DEFAULT_STATS},
+        )
+
+        if create_resp.status_code in (200, 201):
+            stats = create_resp.json()
+        else:
+            # fallback: jeszcze raz pobierz (race condition)
+            retry = await client.get(stats_url, params=stats_params)
+            if retry.status_code == 200:
+                retry_items = (retry.json() or {}).get("items") or []
+                if retry_items:
+                    stats = retry_items[0]
+
+            if not stats:
+                print("Błąd tworzenia post_stats:", create_resp.text)
+                stats = DEFAULT_STATS.copy()
+
+    # 4) doklej do posta
+    post["stats"] = stats
+    return post
 
 
 async def get_all_posts(page: int = 1, per_page: int = 5):
@@ -227,3 +282,4 @@ async def get_top_commented_posts(limit: int = 3, scan: int = 50):
 
     cache_set(cache_key, top)
     return top
+

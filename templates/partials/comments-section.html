@@ -1,16 +1,16 @@
-    <h3>Komentarze: ({{ comments_total_items }})</h3>
+<h3>Komentarze: ({{ comments_total_items if comments_total_items is not none else (post.comments_total or 0) }})</h3>
 
-    {% if comments %}
-        <ul class="comments-list">
-        {% for comment in comments %}
-            <li>
-                <p><strong>{{ comment.author }}</strong>
-                    {% if comment.email %}(<a href="mailto:{{ comment.email }}">{{ comment.email }}</a>){% endif %} napisał(a):
-                    <span class="comment-date">Dodano {{ comment.created[:16] }}</span> </p>
-                <p>{{ comment.content }}</p>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>Brak komentarzy. Bądź pierwszy!</p>
-    {% endif %}
+{% if comments %}
+    <ul class="comments-list">
+    {% for comment in comments %}
+        <li>
+            <p><strong>{{ comment.author }}</strong>
+                {% if comment.email %}(<a href="mailto:{{ comment.email }}">{{ comment.email }}</a>){% endif %} napisał(a):
+                <span class="comment-date">Dodano {{ comment.created[:16] }}</span> </p>
+            <p>{{ comment.content }}</p>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Brak komentarzy. Bądź pierwszy!</p>
+{% endif %}
