@@ -1,3 +1,13 @@
+1. naprawić zliczanie wyświetleń i komentarzy
+
+1. monitoring liczby requestów do celów optymalizacji witryny, dodać przy każdym requeście jakiś log albo komunikat w konsoli. (może globalna zmienna zliczająca wszystkie requesty?)
+
+1. dodać google analytics
+
+1. dodać funkcjonalność zliczania postów i wyświetlania ich liczby w meta post-preview na indexie oraz wewnątrz post.html
+
+1. dodać funkcjonalność zliczania wyświetleń z użyciem cookies 
+
 1. edit w meta posta canonical i og:url po uploadzie na hosting
 
 1. Ograniczyć wypytywanie pocketbase 
@@ -11,6 +21,10 @@
 1. captcha do komentarzy
 
 1. Pinned post u góry
+
+1. link do patronite
+
+1. "buy me a coffee" widget
 
 1. Dodać numerowanie kolejnych postów z danej serii
 

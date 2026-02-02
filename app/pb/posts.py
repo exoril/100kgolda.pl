@@ -171,6 +171,18 @@ async def get_post_by_slug(slug: str):
     return post
 
 
+from typing import Dict, Any, List
+
+POST_STATS_COLLECTION = "post_stats"
+
+DEFAULT_STATS: Dict[str, int] = {
+    "views_total": 0,
+    "comments_total": 0,
+    "reactions_like": 0,
+    "reactions_love": 0,
+    "reactions_laugh": 0,
+}
+
 async def get_all_posts(page: int = 1, per_page: int = 5):
     client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
@@ -190,7 +202,52 @@ async def get_all_posts(page: int = 1, per_page: int = 5):
     total_items = data.get("totalItems", 0)
     total_pages = (total_items + per_page - 1) // per_page
 
-    posts = [await normalize_post(post) for post in items]
+    # ✅ zawsze normalize_post
+    posts: List[Dict[str, Any]] = [await normalize_post(post) for post in items]
+
+    # ---- doklej stats (get-or-create dla listy) ----
+    post_ids = [p.get("id") for p in posts if p.get("id")]
+    if not post_ids:
+        return posts, total_pages
+
+    # 1) pobierz wszystkie stats dla tych postów w jednym zapytaniu
+    # PocketBase filter: OR przez ||
+    or_filter = " || ".join([f'post = "{pid}"' for pid in post_ids])
+    stats_url = f"/api/collections/{POST_STATS_COLLECTION}/records"
+    stats_params = {"filter": or_filter, "perPage": len(post_ids), "page": 1}
+
+    stats_resp = await client.get(stats_url, params=stats_params)
+
+    stats_by_post_id: Dict[str, Dict[str, Any]] = {}
+    if stats_resp.status_code == 200:
+        stats_items = (stats_resp.json() or {}).get("items") or []
+        for s in stats_items:
+            # relacja "post" w rekordzie statów powinna być ID posta (string)
+            pid = s.get("post")
+            if pid:
+                stats_by_post_id[pid] = s
+
+    # 2) dla brakujących — utwórz rekordy
+    missing_ids = [pid for pid in post_ids if pid not in stats_by_post_id]
+
+    for pid in missing_ids:
+        create_resp = await client.post(
+            f"/api/collections/{POST_STATS_COLLECTION}/records",
+            json={"post": pid, **DEFAULT_STATS},
+        )
+        if create_resp.status_code in (200, 201):
+            created = create_resp.json()
+            stats_by_post_id[pid] = created
+        else:
+            # fallback: jeśli nie udało się utworzyć, daj domyślne
+            stats_by_post_id[pid] = DEFAULT_STATS.copy()
+
+    # 3) doklej do postów
+    for p in posts:
+        pid = p.get("id")
+        p["stats"] = stats_by_post_id.get(pid, DEFAULT_STATS.copy())
+    # -----------------------------------------------
+
     return posts, total_pages
 
 
