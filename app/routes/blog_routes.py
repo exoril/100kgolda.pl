@@ -12,8 +12,6 @@ from app.pb.repos.comments import get_comments_paginated, add_comment
 from app.web.render import render_template, render_pagination
 from urllib.parse import quote
 
-from app.pb.repos import stats as stats_repo
-
 router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse)
@@ -175,3 +173,4 @@ async def add_comment_route(
     await sync_comments_total(post["id"])
 
     return RedirectResponse(url=f"/post/{slug}", status_code=HTTP_303_SEE_OTHER)
+

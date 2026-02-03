@@ -1,62 +1,19 @@
 import asyncio
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from app.core.config import POST_STATS_COLLECTION
 from app.pb.client import get_client
 from app.cache import cache, key
 
 DEFAULT_STATS: Dict[str, int] = {
     "views_total": 0,
-    "comments_total": 0,
-    "reactions_like": 0,
-    "reactions_love": 0,
-    "reactions_laugh": 0,
+    "comments_total": 0
 }
 
-REACTION_FIELDS = {
-    "like": "reactions_like",
-    "love": "reactions_love",
-    "laugh": "reactions_laugh",
-}
-
-async def increment_reaction(post_id: str, reaction: str, by: int = 1) -> Dict[str, int]:
-    """
-    Zwiększa licznik reakcji w post_stats i zwraca aktualne liczniki reakcji.
-    """
-    if reaction not in REACTION_FIELDS:
-        return {}
-
-    client = await get_client()
-    stats = await get_or_create_stats(post_id)
-    sid = stats.get("id")
-    if not sid:
-        return {}
-
-    field = REACTION_FIELDS[reaction]
-    current = int(stats.get(field, 0))
-    new_value = current + int(by)
-
-    url = f"/api/collections/{POST_STATS_COLLECTION}/records/{sid}"
-    resp = await client.patch(url, json={field: new_value})
-
-    if resp.status_code not in (200, 204):
-        print("Błąd aktualizacji reakcji:", resp.status_code, resp.text)
-        return {}
-
-    # unieważnij krótki cache pojedynczych stats (jeśli masz)
-    try:
-        await cache.delete(key("stats", "one", post_id))
-    except Exception:
-        pass
-
-    # zwróć aktualne wartości (z lokalnego stats + poprawka)
-    # (bez dodatkowego GET)
-    return {
-        "like": int(stats.get("reactions_like", 0)) + (int(by) if reaction == "like" else 0),
-        "love": int(stats.get("reactions_love", 0)) + (int(by) if reaction == "love" else 0),
-        "laugh": int(stats.get("reactions_laugh", 0)) + (int(by) if reaction == "laugh" else 0),
-    }
-
-async def update_stats_totals(post_id: str, views_total: int, comments_total: int) -> None:
+async def update_stats_totals(
+    post_id: str,
+    views_total: int,
+    comments_total: int
+) -> None:
     client = await get_client()
     stats_map = await ensure_stats_for_posts([post_id])
     stats = stats_map.get(post_id) or {}
@@ -64,11 +21,14 @@ async def update_stats_totals(post_id: str, views_total: int, comments_total: in
     if not sid:
         return
 
-    url = f"/api/collections/{POST_STATS_COLLECTION}/records/{sid}"
-    await client.patch(url, json={
+    payload = {
         "views_total": int(views_total),
         "comments_total": int(comments_total),
-    })
+    }
+
+    url = f"/api/collections/{POST_STATS_COLLECTION}/records/{sid}"
+    await client.patch(url, json=payload)
+
 
 async def get_stats_map(post_ids: List[str]) -> Dict[str, Dict[str, Any]]:
     if not post_ids:

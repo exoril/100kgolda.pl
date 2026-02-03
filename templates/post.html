@@ -43,18 +43,17 @@
         {{ lazy_images(post.content) | safe }}
     </div>
 
-    <div class="reactions" data-slug="{{ post.slug }}" data-post-id="{{ post.id }}">
-        <button class="reaction-btn" data-type="like" type="button">
-            👍 <span class="cnt">{{ post.stats.reactions_like or 0 }}</span>
-        </button>
-        <button class="reaction-btn" data-type="love" type="button">
-            ❤️ <span class="cnt">{{ post.stats.reactions_love or 0 }}</span>
-        </button>
-        <button class="reaction-btn" data-type="laugh" type="button">
-            😂 <span class="cnt">{{ post.stats.reactions_laugh or 0 }}</span>
-        </button>
+    
+    <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
+        <button class="reaction-btn" data-type="like" type="button">👍 <span class="cnt">{{ (post.stats.reactions.like or 0) if post.stats.reactions else 0 }}</span></button>
+        <button class="reaction-btn" data-type="love" type="button">❤️ <span class="cnt">{{ (post.stats.reactions.love or 0) if post.stats.reactions else 0 }}</span></button>
+        <button class="reaction-btn" data-type="laugh" type="button">😂 <span class="cnt">{{ (post.stats.reactions.laugh or 0) if post.stats.reactions else 0 }}</span></button>
+        <button class="reaction-btn" data-type="fire" type="button">🔥 <span class="cnt">{{ (post.stats.reactions.fire or 0) if post.stats.reactions else 0 }}</span></button>
+        <button class="reaction-btn" data-type="wow" type="button">😮 <span class="cnt">{{ (post.stats.reactions.wow or 0) if post.stats.reactions else 0 }}</span></button>
         <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
     </div>
+
+
 
 
     <hr style="color: #f7c920">
