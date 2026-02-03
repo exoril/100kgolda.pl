@@ -44,17 +44,18 @@
     </div>
 
     <div class="reactions" data-slug="{{ post.slug }}" data-post-id="{{ post.id }}">
-  <button class="reaction-btn" data-type="like" type="button">
-    👍 <span class="cnt">{{ post.react_like or 0 }}</span>
-  </button>
-  <button class="reaction-btn" data-type="love" type="button">
-    ❤️ <span class="cnt">{{ post.react_love or 0 }}</span>
-  </button>
-  <button class="reaction-btn" data-type="laugh" type="button">
-    😂 <span class="cnt">{{ post.react_laugh or 0 }}</span>
-  </button>
-  <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
-</div>
+        <button class="reaction-btn" data-type="like" type="button">
+            👍 <span class="cnt">{{ post.stats.reactions_like or 0 }}</span>
+        </button>
+        <button class="reaction-btn" data-type="love" type="button">
+            ❤️ <span class="cnt">{{ post.stats.reactions_love or 0 }}</span>
+        </button>
+        <button class="reaction-btn" data-type="laugh" type="button">
+            😂 <span class="cnt">{{ post.stats.reactions_laugh or 0 }}</span>
+        </button>
+        <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
+    </div>
+
 
     <hr style="color: #f7c920">
     <br>

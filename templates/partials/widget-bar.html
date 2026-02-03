@@ -37,7 +37,7 @@
       {% for p in top_posts %}
         <li>
           <a href="/post/{{ p.slug }}">{{ p.title }}</a>
-          <span class="widget-count">({{ p.views }})</span>
+          <span class="widget-count">({{ p.stats.views_total }})</span>
         </li>
       {% endfor %}
     </ol>
@@ -54,7 +54,7 @@
       {% for p in top_commented %}
         <li>
           <a href="/post/{{ p.slug }}">{{ p.title }}</a>
-          <span class="widget-count">({{ p.comment_count }})</span>
+          <span class="widget-count">({{ p.stats.comments_total }})</span>
         </li>
       {% endfor %}
     </ol>

@@ -2,11 +2,12 @@ import asyncio
 import re
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
-from app.pb.posts import (
+
+from app.services.blog import (
     get_post_count,
     get_top_viewed_posts,
     get_all_categories,
-    get_top_commented_posts
+    get_top_commented_posts,
 )
 
 IMG_RE = re.compile(r"<img(?![^>]*\sloading=)([^>]*)(/?)>", re.IGNORECASE)
@@ -16,8 +17,15 @@ def lazy_images(html: str) -> str:
         return ""
     return IMG_RE.sub(r'<img loading="lazy" decoding="async"\1\2>', html)
 
-# funkcja renderująca template z ogólnodostępnym kotekstem
-async def render_template(request, templates, template_name, context=None):
+async def render_template(
+    request: Request,
+    templates: Jinja2Templates,
+    template_name: str,
+    context: dict | None = None,
+):
+    """
+    Renderuje template z globalnym kontekstem (sidebar/widgets) dostępnym na każdej stronie.
+    """
     post_count, top_posts, categories, top_commented = await asyncio.gather(
         get_post_count(),
         get_top_viewed_posts(3),
@@ -33,11 +41,11 @@ async def render_template(request, templates, template_name, context=None):
         "top_commented": top_commented,
         "lazy_images": lazy_images,
     }
+
     if context:
         ctx.update(context)
 
     return templates.TemplateResponse(template_name, ctx)
-
 
 def render_pagination(
     request: Request,

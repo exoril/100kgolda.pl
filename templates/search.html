@@ -5,17 +5,16 @@
 {% block title %}Wyszukiwanie{% endblock %}
 
 {% block content %}
-                {% if query %}
-                    <h1>Wyszukiwanie:
-                    <strong>"{{ query }}"</strong>
-                    {% if total_pages > 1 %}
-                    , strona: {{ page }}
-                    {% else %}
-                    {% endif %}
-                {% else %}
-                    <p>Wpisz frazę w wyszukiwarkę.</p>
-                {% endif %}
-                    </h1>
-        {% include "partials/post-list.html" with context %}
+    {% if query %}
+        <h1>Wyszukiwanie:
+        <strong>"{{ query }}"</strong>
+        {% if total_pages > 1 %}
+            , strona: {{ page }}
+        {% else %}{% endif %}
+        {% else %}
+            <p>Wpisz frazę w wyszukiwarkę.</p>
+        {% endif %}
+     </h1>
 
+    {% include "partials/post-list.html" with context %}
 {% endblock %}

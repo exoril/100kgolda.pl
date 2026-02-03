@@ -1,7 +1,3 @@
-1. naprawić zliczanie wyświetleń i komentarzy
-
-1. monitoring liczby requestów do celów optymalizacji witryny, dodać przy każdym requeście jakiś log albo komunikat w konsoli. (może globalna zmienna zliczająca wszystkie requesty?)
-
 1. dodać google analytics
 
 1. dodać funkcjonalność zliczania postów i wyświetlania ich liczby w meta post-preview na indexie oraz wewnątrz post.html
@@ -9,6 +5,10 @@
 1. dodać funkcjonalność zliczania wyświetleń z użyciem cookies 
 
 1. edit w meta posta canonical i og:url po uploadzie na hosting
+
+1. Zrobić automatyczne wstawanie strony po błędzie
+
+1. dodać obsługę 500 internal server error
 
 1. Ograniczyć wypytywanie pocketbase 
 

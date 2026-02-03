@@ -1,0 +1,74 @@
+{# templates/admin/metrics.html #}
+{% extends "layout.html" %}
+
+{% block content %}
+<section style="max-width: 1000px; margin: 0 auto; padding: 16px;">
+  <h1 style="margin-bottom: 8px;">Metryki PocketBase</h1>
+
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin: 12px 0;">
+    <div style="padding:12px; border:1px solid #333; border-radius:12px;">
+      <div style="opacity:.8; font-size: 14px;">Uptime</div>
+      <div style="font-size: 20px; font-weight:700;">{{ m.uptime_s }}s</div>
+    </div>
+    <div style="padding:12px; border:1px solid #333; border-radius:12px;">
+      <div style="opacity:.8; font-size: 14px;">Łącznie zapytań</div>
+      <div style="font-size: 20px; font-weight:700;">{{ m.total_requests }}</div>
+    </div>
+    <div style="padding:12px; border:1px solid #333; border-radius:12px;">
+      <div style="opacity:.8; font-size: 14px;">Łączny czas</div>
+      <div style="font-size: 20px; font-weight:700;">{{ m.total_time_ms }} ms</div>
+    </div>
+    <div style="padding:12px; border:1px solid #333; border-radius:12px;">
+      <div style="opacity:.8; font-size: 14px;">Statusy</div>
+      <div style="font-size: 14px;">
+        {% for code, cnt in m.statuses.items() %}
+          <span style="display:inline-block; margin-right:8px;">{{ code }}: <b>{{ cnt }}</b></span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; align-items:center; margin: 12px 0;">
+  <form action="/admin/metrics/reset" method="post">
+    <button type="submit" style="padding:8px 12px; border-radius:10px; cursor:pointer;">
+      Resetuj metryki
+    </button>
+  </form>
+  
+  <form action="/admin/rebuild-stats" method="post" style="display:inline;">
+  <button type="submit" style="padding:8px 12px; border-radius:10px; cursor:pointer;">
+    Przebuduj statystyki
+  </button>
+  </form>
+
+  <a href="/admin/metrics.json" style="opacity:.85;">Zobacz JSON</a>
+  </div>
+
+  <div style="overflow:auto; border:1px solid #333; border-radius:12px; display:block;">
+    <table style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr style="text-align:left; background: rgba(255,255,255,0.06);">
+          <th style="padding:10px; border-bottom:1px solid #333;">Bucket</th>
+          <th style="padding:10px; border-bottom:1px solid #333;">Count</th>
+          <th style="padding:10px; border-bottom:1px solid #333;">Avg ms</th>
+          <th style="padding:10px; border-bottom:1px solid #333;">Min ms</th>
+          <th style="padding:10px; border-bottom:1px solid #333;">Max ms</th>
+          <th style="padding:10px; border-bottom:1px solid #333;">Total ms</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in m.rows %}
+        <tr>
+          <td style="padding:10px; border-bottom:1px solid #222;">{{ r.key }}</td>
+          <td style="padding:10px; border-bottom:1px solid #222;">{{ r.count }}</td>
+          <td style="padding:10px; border-bottom:1px solid #222;">{{ r.avg_ms }}</td>
+          <td style="padding:10px; border-bottom:1px solid #222;">{{ r.min_ms }}</td>
+          <td style="padding:10px; border-bottom:1px solid #222;">{{ r.max_ms }}</td>
+          <td style="padding:10px; border-bottom:1px solid #222;">{{ r.total_ms }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
