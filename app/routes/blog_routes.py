@@ -165,12 +165,17 @@ async def add_comment_route(
     if not post:
         raise HTTPException(status_code=404, detail="Post nie znaleziony")
 
-    ok = await add_comment(author=author, email=email, content=content, post_id=post["id"])
+    visitor_id = getattr(request.state, "visitor_id", None)
+
+    ok = await add_comment(
+        author=author,
+        email=email,
+        content=content,
+        post_id=post["id"],
+        visitor_id=visitor_id,
+    )
     if not ok:
         raise HTTPException(status_code=500, detail="Nie udało się dodać komentarza")
 
-    # ✅ aktualizuj licznik w post_stats
     await sync_comments_total(post["id"])
-
     return RedirectResponse(url=f"/post/{slug}", status_code=HTTP_303_SEE_OTHER)
-

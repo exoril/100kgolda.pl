@@ -1,11 +1,13 @@
 from typing import Any, Dict, List, Tuple, Optional
 from app.core.config import POSTS_COLLECTION
-from app.pb.client import get_client
+from app.pb.client import pb_request
 from app.cache import cache, key
+
 
 def pb_escape(s: str) -> str:
     # Minimalne escapowanie, żeby filtry PB nie padały na cudzysłowach/backslashu
-    return s.replace("\\", "\\\\").replace('"', '\\"')
+    return (s or "").replace("\\", "\\\\").replace('"', '\\"')
+
 
 async def list_posts(page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, Any]], int]:
     ck = key("posts", "list", page, per_page)
@@ -13,7 +15,6 @@ async def list_posts(page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, A
     if cached is not None:
         return cached["items"], cached["total_pages"]
 
-    client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
         "filter": "published=true",
@@ -21,7 +22,7 @@ async def list_posts(page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, A
         "page": page,
         "perPage": per_page,
     }
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return [], 0
 
@@ -41,7 +42,6 @@ async def search_posts(q: str, page: int = 1, per_page: int = 5) -> Tuple[List[D
     if cached is not None:
         return cached["items"], cached["total_pages"]
 
-    client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
         "filter": f'published=true && (title ~ "{q2}" || content ~ "{q2}")',
@@ -49,7 +49,7 @@ async def search_posts(q: str, page: int = 1, per_page: int = 5) -> Tuple[List[D
         "page": page,
         "perPage": per_page,
     }
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return [], 0
 
@@ -69,7 +69,6 @@ async def list_posts_by_category(category: str, page: int = 1, per_page: int = 5
     if cached is not None:
         return cached["items"], cached["total_pages"]
 
-    client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
         "filter": f'published=true && category="{cat}"',
@@ -77,7 +76,7 @@ async def list_posts_by_category(category: str, page: int = 1, per_page: int = 5
         "page": page,
         "perPage": per_page,
     }
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return [], 0
 
@@ -91,16 +90,27 @@ async def list_posts_by_category(category: str, page: int = 1, per_page: int = 5
 
 
 async def get_post_by_slug(slug: str) -> Optional[Dict[str, Any]]:
-    client = await get_client()
-    url = f"/api/collections/{POSTS_COLLECTION}/records"
     s = pb_escape(slug)
+
+    # (opcjonalnie) krótki cache dla detalu posta
+    ck = key("posts", "slug", s)
+    cached = await cache.get(ck)
+    if cached is not None:
+        return cached
+
+    url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": f'slug="{s}" && published=true', "perPage": 1, "page": 1}
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
-        print("PB get_post_by_slug error:", resp.status_code, resp.text)
         return None
+
     items = (resp.json() or {}).get("items") or []
-    return items[0] if items else None
+    post = items[0] if items else None
+
+    if post:
+        await cache.set(ck, post, ttl=20)  # krótko, bo content się może zmieniać
+    return post
+
 
 async def get_post_count() -> int:
     ck = key("posts", "count")
@@ -108,10 +118,9 @@ async def get_post_count() -> int:
     if cached is not None:
         return int(cached)
 
-    client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": "published=true", "perPage": 1, "page": 1}
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return 0
 
@@ -119,16 +128,16 @@ async def get_post_count() -> int:
     await cache.set(ck, total, ttl=300)
     return total
 
+
 async def list_categories() -> List[str]:
     ck = key("posts", "categories")
     cached = await cache.get(ck)
     if cached is not None:
         return cached
 
-    client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": "published=true", "perPage": 1000, "page": 1, "fields": "category"}
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return []
 
@@ -146,27 +155,31 @@ async def fetch_posts_by_ids(post_ids: List[str]) -> Dict[str, Dict[str, Any]]:
     if not post_ids:
         return {}
 
-    client = await get_client()
+    # ID z PB zwykle jest bezpieczne, ale escapowanie nie zaszkodzi
+    ids = [pb_escape(pid) for pid in post_ids if pid]
+    if not ids:
+        return {}
+
     url = f"/api/collections/{POSTS_COLLECTION}/records"
-    or_filter = " || ".join([f'id="{pid}"' for pid in post_ids])
+    or_filter = " || ".join([f'id="{pid}"' for pid in ids])
     params = {
         "filter": f"published=true && ({or_filter})",
-        "perPage": len(post_ids),
+        "perPage": len(ids),
         "page": 1,
     }
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return {}
+
     items = (resp.json() or {}).get("items") or []
-    out = {p["id"]: p for p in items if p.get("id")}
-    return out
+    return {p["id"]: p for p in items if p.get("id")}
+
 
 async def list_all_post_ids(per_page: int = 200) -> List[str]:
     """
     Zwraca listę ID wszystkich opublikowanych postów.
-    Na start bez paginacji (OK jeśli masz <= 200 postów).
+    Na start bez paginacji (OK jeśli masz <= per_page postów).
     """
-    client = await get_client()
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
         "filter": "published=true",
@@ -174,7 +187,7 @@ async def list_all_post_ids(per_page: int = 200) -> List[str]:
         "perPage": per_page,
         "page": 1,
     }
-    resp = await client.get(url, params=params)
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return []
 

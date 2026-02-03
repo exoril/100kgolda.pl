@@ -1,40 +1,60 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Dict, Any
 from app.core.config import COMMENTS_COLLECTION
-from app.pb.client import get_client
+from app.pb.client import pb_request
+
+
+def pb_escape(s: str) -> str:
+    return (s or "").replace("\\", "\\\\").replace('"', '\\"')
+
 
 async def count_comments(post_id: str) -> int:
-    client = await get_client()
     url = f"/api/collections/{COMMENTS_COLLECTION}/records"
-    params = {"filter": f'post="{post_id}" && approved=true', "perPage": 1, "page": 1}
-    resp = await client.get(url, params=params)
+    pid = pb_escape(post_id)
+    params = {"filter": f'post="{pid}" && approved=true', "perPage": 1, "page": 1}
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return 0
     return int((resp.json() or {}).get("totalItems", 0))
 
 
-async def add_comment(author: str, email: str, content: str, post_id: str) -> bool:
-    client = await get_client()
+async def add_comment(
+    author: str,
+    email: str,
+    content: str,
+    post_id: str,
+    visitor_id: Optional[str],
+) -> bool:
     url = f"/api/collections/{COMMENTS_COLLECTION}/records"
-    payload = {
+
+    payload: Dict[str, Any] = {
         "post": post_id,
         "author": author,
         "email": email or "",
         "content": content,
         "approved": True,
     }
-    resp = await client.post(url, json=payload)
+    if visitor_id:
+        payload["visitor_id"] = visitor_id
+
+    resp = await pb_request("POST", url, json=payload)  # ✅ POST
     return resp.status_code in (200, 201)
 
-async def get_comments_paginated(post_id: str, page: int = 1, per_page: int = 10) -> Tuple[List[dict], int, int]:
-    client = await get_client()
+
+async def get_comments_paginated(
+    post_id: str,
+    page: int = 1,
+    per_page: int = 10,
+) -> Tuple[List[dict], int, int]:
     url = f"/api/collections/{COMMENTS_COLLECTION}/records"
+    pid = pb_escape(post_id)
     params = {
-        "filter": f'post="{post_id}" && approved=true',
+        "filter": f'post="{pid}" && approved=true',
         "sort": "-created",
         "page": page,
         "perPage": per_page,
     }
-    resp = await client.get(url, params=params)
+
+    resp = await pb_request("GET", url, params=params)
     if resp.status_code != 200:
         return [], 0, 0
 
@@ -43,12 +63,3 @@ async def get_comments_paginated(post_id: str, page: int = 1, per_page: int = 10
     total_items = int(data.get("totalItems", 0))
     total_pages = (total_items + per_page - 1) // per_page
     return items, total_pages, total_items
-
-async def count_comments(post_id: str) -> int:
-    client = await get_client()
-    url = f"/api/collections/{COMMENTS_COLLECTION}/records"
-    params = {"filter": f'post="{post_id}" && approved=true', "perPage": 1, "page": 1}
-    resp = await client.get(url, params=params)
-    if resp.status_code != 200:
-        return 0
-    return int((resp.json() or {}).get("totalItems", 0))
