@@ -11,8 +11,11 @@ from app.routes.blog_routes import router as blog_router
 from app.routes.pages import router as pages_router
 from app.pb.client import close_client
 from app.routes.admin_routes import router as admin_metrics_router
+from app.middleware.visitor import VisitorIdMiddleware
 
 app = FastAPI()
+
+app.add_middleware(VisitorIdMiddleware)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")

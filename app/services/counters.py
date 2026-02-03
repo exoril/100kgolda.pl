@@ -10,26 +10,11 @@ from app.pb.repos.stats import update_comments_total
 
 VISITOR_COOKIE = "visitor_id"
 
-def ensure_visitor_cookie(request: Request, response: Response) -> str:
-    vid = request.cookies.get(VISITOR_COOKIE)
-    if not vid:
-        vid = str(uuid4())
-        response.set_cookie(
-            VISITOR_COOKIE,
-            vid,
-            max_age=60 * 60 * 24 * 365 * 2,
-            httponly=True,
-            samesite="lax",
-            path="/",          # <-- WAŻNE
-        )
-    return vid
-
-
 async def count_unique_view(request: Request, response: Response, post_id: str) -> None:
-    """
-    1 unikalny użytkownik (cookie) / dzień / post -> +1 do views_total
-    """
-    visitor_id = ensure_visitor_cookie(request, response)
+    visitor_id = getattr(request.state, "visitor_id", None)
+    if not visitor_id:
+        return 
+
     day = date.today().isoformat()
 
     created = await create_unique_view(post_id=post_id, day=day, visitor_id=visitor_id)
