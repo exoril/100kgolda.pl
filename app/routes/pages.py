@@ -20,3 +20,12 @@ async def o_blogu(request: Request):
 @router.get("/moje-projekty", response_class=HTMLResponse)
 async def moje_projekty(request: Request):
     return await render_template(request, request.app.state.templates, "moje-projekty.html", {})
+
+@router.get("/regulamin", response_class=HTMLResponse)
+async def regulamin(request: Request):
+    return await render_template(request, request.app.state.templates, "regulamin.html", {})
+
+@router.get("/polityka", response_class=HTMLResponse)
+async def polityka(request: Request):
+    return await render_template(request, request.app.state.templates, "polityka.html", {})
+

@@ -4,5 +4,29 @@
 
 {% block content %}
     <h1>Kontakt</h1>
-    <p>W tym miejscu znajdziesz formularz kontaktowy, mój adres e-mail oraz linki do stron społecznościowych.</p>
+    <p>Masz pytanie, sugestię, chcesz się przywitać lub zaproponować współpracę, a może znalazłeś jakiś błąd? Napisz do mnie — z chęcią przeczytam każdą wiadomość związaną z tematyką bloga.</p>
+    <h2>Napisz wiadomość</h2>
+    <p>Jeśli wolisz, możesz skorzystać z formularza kontaktowego dostępnego poniżej. Staram się odpowiadać na każdą wiadomość w ciągu kilku dni.</p>
+    <div class="contact-form">
+        <form action="/kontakt#kontakt" method="post">
+            <label for="name">Imię:<span style="color:red">*</span></label>
+            <input type="text" name="name" id="name" required maxlength="40" value="{{ prefill_name or '' }}">
+            <label for="email">E-mail:<span style="color:red">*</span></label>
+            <input type="email" name="email" id="email" required maxlength="80" value="{{ prefill_email or '' }}">
+            <label for="subject">Temat:<span style="color:red">*</span></label>
+            <input type="text" name="subject" id="subject" required maxlength="120" value="{{ prefill_subject or '' }}">
+            <label for="message">
+                Wiadomość:<span style="color:red">*</span>
+                <span class="chars-container">(pozostało <span id="chars-left">1000</span> znaków)</span>
+            </label>
+            <textarea name="message" id="contact-message" rows="8" required maxlength="1000">{{ prefill_message or '' }}</textarea>
+            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+            <button type="submit">Wyślij</button>
+        </form>
+    </div>
+    <h2>Bezpośredni kontakt</h2>
+    <a href="mailto:marcin@100kgolda.pl">marcin@100kgolda.pl</a>
+    <h2>Media społecznościowe</h2>
+    <a href="https://facebook.com/">Facebook</a>
+    <p>Dziękuję za wiadomość i cierpliwość!</p>
 {% endblock %}

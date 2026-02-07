@@ -2,6 +2,7 @@ import asyncio
 import re
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
+from app.core.config import RECAPTCHA_SITE_KEY
 
 from app.services.blog import (
     get_post_count,
@@ -40,6 +41,7 @@ async def render_template(
         "categories": categories,
         "top_commented": top_commented,
         "lazy_images": lazy_images,
+        "recaptcha_site_key": RECAPTCHA_SITE_KEY,
     }
 
     if context:

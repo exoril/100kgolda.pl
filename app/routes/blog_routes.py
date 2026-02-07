@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request, Query, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi import Form
 from starlette.status import HTTP_303_SEE_OTHER
-from pydantic import BaseModel
 
 from app.web.render import render_template
 from app.web.toc import build_toc
@@ -10,6 +9,7 @@ from app.services import blog as blog_service
 from app.services.counters import count_unique_view, sync_comments_total
 from app.pb.repos.comments import get_comments_paginated, add_comment
 from app.web.render import render_template, render_pagination
+from app.services.recaptcha import verify_recaptcha
 from urllib.parse import quote
 
 router = APIRouter()
@@ -44,7 +44,14 @@ async def index(request: Request, page: int = Query(1, ge=1)):
 
 
 @router.get("/post/{slug}", response_class=HTMLResponse)
-async def post_detail(request: Request, slug: str, cpage: int = Query(1, ge=1)):
+async def post_detail(
+    request: Request,
+    slug: str,
+    cpage: int = Query(1, ge=1),
+    captcha: int = Query(0, ge=0, le=1),
+    author: str = Query("", min_length=0),
+    email: str = Query("", min_length=0),
+):
     post = await blog_service.get_post(slug)
     if not post:
         raise HTTPException(status_code=404, detail="Post nie znaleziony")
@@ -63,10 +70,14 @@ async def post_detail(request: Request, slug: str, cpage: int = Query(1, ge=1)):
         "comments_page": cpage,
         "comments_total_pages": comments_total_pages,
         "comments_total_items": comments_total_items,
+        "captcha_error": (captcha == 1),
+        "prefill_author": author,
+        "prefill_email": email,
     })
 
     await count_unique_view(request, response, post["id"])
     return response
+
 
 
 @router.get("/kategorie/{slug}", response_class=HTMLResponse)
@@ -153,6 +164,7 @@ async def add_comment_route(
     author: str = Form(...),
     email: str = Form(None),
     content: str = Form(...),
+    recaptcha_token: str = Form("", alias="g-recaptcha-response"),
 ):
     author = (author or "").strip()
     content = (content or "").strip()
@@ -160,6 +172,20 @@ async def add_comment_route(
 
     if not author or not content:
         return RedirectResponse(url=f"/post/{slug}", status_code=HTTP_303_SEE_OTHER)
+
+    # ✅ weryfikacja captcha (zanim ruszymy bazę / zapis)
+    ok_captcha = await verify_recaptcha(
+        recaptcha_token,
+        remote_ip=(request.client.host if request.client else None),
+    )
+    if not ok_captcha:
+        a = quote(author)
+        e = quote(email)
+        # content nie przenoszę w URL (długie + wrażliwe); można to zrobić inaczej później
+        return RedirectResponse(
+            url=f"/post/{slug}?captcha=1&author={a}&email={e}#comments",
+            status_code=HTTP_303_SEE_OTHER,
+        )
 
     post = await blog_service.get_post(slug)
     if not post:
@@ -178,4 +204,4 @@ async def add_comment_route(
         raise HTTPException(status_code=500, detail="Nie udało się dodać komentarza")
 
     await sync_comments_total(post["id"])
-    return RedirectResponse(url=f"/post/{slug}", status_code=HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=f"/post/{slug}#comments", status_code=HTTP_303_SEE_OTHER)

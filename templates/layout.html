@@ -40,6 +40,7 @@
 
   {% block head_extra %}{% endblock %}
   <script src="/static/scripts.js" defer></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   {% block scripts_head %}{% endblock %}
 </head>
 
@@ -67,6 +68,7 @@
   <div class="modal-container" id="modals" aria-live="polite">
     {% include "/partials/cookie-ack.html" %}
     {% block modals %}{% endblock %}
+    <div id="notice-toast" class="notice-toast"></div>
   </div>
 
   <noscript>
@@ -74,5 +76,7 @@
   </noscript>
 
   {% block scripts_body %}{% endblock %}
+
+ 
 </body>
 </html>

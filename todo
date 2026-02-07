@@ -1,34 +1,46 @@
+1. dodać obsługę endpointa formularza kontaktowego
+
 1. dodać google analytics
 
-1. dodać funkcjonalność zliczania wyświetleń z użyciem cookies 
+2. Mapa strony w XML dla celów seo
+
+3. stworzyć i zalinkować w stopce i stronie kontakt media społecznościowe - facebook, twitter, instagram, youtube
+
+3. różne optymalizacje seo, np. z książki e-marketing.
 
 1. edit w meta posta canonical i og:url po uploadzie na hosting
 
 1. Zrobić automatyczne wstawanie strony po błędzie
 
-1. dodać obsługę 500 internal server error
-
 1. Ograniczyć wypytywanie pocketbase 
 
 1. zrobić widget "serie" podobny do widgeta "categories"
 
+1. wazne: regulamin komentarzy + polityka prywatności + bezpieczeństwo
+
+1. dodać zabezpieczenie 1 komentarz/5-10minut
+
+1. dodać do formularza komentarzy checkbox "zapoznałem się i akceptuję regulamin komentarzy" do linkiem do regulaminu
+
 1. Cross-linking
+
+1. dodać w cyberfolks konta email: marcin@100kgolda.pl, moderacja@100kgolda.pl
 
 1. zmienic komunikat wymagający email i komentarza w fomularzu komentarzy
 
-1. captcha do komentarzy
+1. wszystkie style mają być nie inline, ale w style.css
+
+1. do footera dodać ikonki mediów społecznościowych
 
 1. Pinned post u góry
 
 1. link do patronite
 
+1. usunąć zbędne pliki ze static (głównie nieużywane obrazki)
+
 1. "buy me a coffee" widget
 
 1. Dodać numerowanie kolejnych postów z danej serii
-
-1. Dodać dump logów do pliku po ewentualnym crashu
-
-1. Dodać uniwersalny modal, który przyjmuje wartości i na ich podstawie wyświetla komunikat, zamiast osobnych modali do każdej funkcji
 
 1. po zahostowaniu strony: zadbać o automatyczne wstawanie strony po błędzie + dump logów do pliku, ważne: ograniczyć zapytania do pocketbase, dodać caching o sporym ttl!
 
@@ -40,8 +52,6 @@
 
 5. W prawym sidebarze dodać tagi
 
-5a. W prawym sidebarze dodać "3 najczęściej komentowane posty"
-
 6. Dodać zawartość stron o mnie, o blogu, kontakt, moje projekty
 
 7. Do strony kontakt dodać formularz kontaktowy
@@ -49,8 +59,6 @@
 8. Dodać w stopce odnośnik do strony z prywatnością i bezpieczeństwem
 
 10. Przed uploadem FTP na hosting: zresetować wszystkie views, zrobić dobre zasady korzystania z API w UI PocketBase
-
-11. Dodać captcha do formularza komentarzy
 
 12. Zajać się zabezpieczeniami strony
 

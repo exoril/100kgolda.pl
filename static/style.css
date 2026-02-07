@@ -608,9 +608,9 @@ a.btn:active,
 .pagination strong{ margin: 0 5px; }
 
 /* =========================
-   SHARE MODAL + COPY NOTICE
+   SHARE MODAL + NOTICE TOAST
    ========================= */
-.copy-notice{
+.notice-toast{
   position: fixed;
   top: 20%;
   left: 50%;
@@ -621,10 +621,9 @@ a.btn:active,
 
   padding: 20px 40px;
   border-radius: 12px;
-  border: 2px solid var(--highlight);
+  border: 2px solid var(--bg-color);
 
-  font-size: 1rem;
-  font-weight: 800;
+  font-weight: normal;
   text-align: center;
 
   opacity: 0;
@@ -632,6 +631,14 @@ a.btn:active,
   transition: opacity 0.5s ease;
 
   z-index: 20000;
+}
+
+.notice-toast.notice-error {
+  border-color: red;
+}
+
+.notice-toast.notice-info {
+  border-color: var(--highlight);
 }
 
 .share-modal{
@@ -666,7 +673,7 @@ a.btn:active,
   display: block;
   line-height: 1.6;
   color: var(--highlight);
-  font-size: 1.3rem;
+  font-size: 1rem;
 }
 
 .share-modal-content h1{
@@ -755,7 +762,7 @@ a.btn:active,
 }
 
 /* add-comment form */
-.add-comment{
+.add-comment, .contact-form{
   flex: 1;
   padding: 20px;
   padding-top: 0px;
@@ -767,17 +774,19 @@ a.btn:active,
   margin: 0 0 15px;
 }
 
-.add-comment form{
+.add-comment form, .contact-form form{
   display: flex;
   flex-direction: column;
 }
 
-.add-comment label{
+.add-comment label, .contact-form label{
   margin-bottom: 5px;
 }
 
 .add-comment input,
-.add-comment textarea{
+.add-comment textarea,
+.contact-form input,
+.contact-form textarea{
   padding: 10px 12px;
   margin-bottom: 15px;
 
@@ -793,18 +802,31 @@ a.btn:active,
 .add-comment input:focus,
 .add-comment input:focus-visible,
 .add-comment textarea:focus,
-.add-comment textarea:focus-visible{
+.add-comment textarea:focus-visible,
+.contact-form input:focus,
+.contact-form input:focus-visible,
+.contact-form textarea:focus,
+.contact-form textarea:focus-visible{
   outline: none;
   border-color: var(--highlight);
   box-shadow: var(--focus-ring);
 }
 
-.add-comment textarea{ resize: vertical; }
+.add-comment textarea,
+.contact-form textarea { 
+  resize: vertical; 
+}
 
-.add-comment button {
+.add-comment button,
+.contact-form button{
   color: var(--highlight);
   font-weight: bold;
 }
+
+/* .contact-form {
+  padding-left: 0px;
+  padding-right: 0px;
+} */
 
 
 
@@ -1066,56 +1088,121 @@ ul li::before{
   font-weight: normal;
 }
 
+.post-content ol {
+  padding-left: 28px;
+}
 
-  /* COOKIE CONSENT (modal) */
-  .cookie-consent[hidden]{ display:none; }
+/* =========================
+   COOKIE CONSENT – styled like .share-modal
+   ========================= */
 
-  .cookie-consent{
-    position: fixed;
-    inset: 0;
-    z-index: 30000;
-  }
+/* show/hide stays via [hidden] attribute */
+.cookie-consent[hidden]{
+  display: none !important;
+}
 
-  .cookie-consent__overlay{
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(3px);
-  }
+.cookie-consent{
+  position: fixed;
+  inset: 0;
+  z-index: 10000; /* jak share-modal */
+  display: block;
+}
 
+/* overlay identyczny jak .share-modal-overlay */
+.cookie-consent__overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+/* box identyczny jak .share-modal-content */
+.cookie-consent__box{
+  position: relative;
+  z-index: 10;
+
+  max-width: 400px;
+  margin: 100px auto;
+
+  background: var(--surface);
+  border: 1px solid var(--highlight);
+  padding: 20px;
+
+  border-radius: 8px;
+  color: var(--font-color);
+  text-align: center;
+}
+
+.cookie-consent__box h3{
+  margin: 0;
+  margin-bottom: 16px; /* jak share-modal h1 */
+}
+
+.cookie-consent__text{
+  margin: 0;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* actions wyśrodkuj jak modal share */
+.cookie-consent__actions{
+  display: flex;
+  justify-content: center;
+}
+
+/* przycisk: korzysta z Twojego globalnego button look
+   + lekko podbijamy akcent jak w share linkach */
+.cookie-consent__btn{
+  color: var(--highlight);
+  font-weight: 700;
+}
+
+.g-recaptcha {
+  margin-bottom: 15px;
+}
+
+/* małe ekrany: ciaśniej (opcjonalnie) */
+@media (max-width: 420px){
   .cookie-consent__box{
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-
-    width: min(520px, calc(100% - 28px));
-    border: var(--border);
-    border-radius: var(--border-radius-var);
-    background: var(--surface);
-    padding: 18px 18px 14px;
-
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    margin: 14vh auto;
+    max-width: min(400px, calc(100% - 28px));
   }
+}
 
-  .cookie-consent__box h3{
-    margin: 0 0 10px;
-    font-size: 1.1rem;
-  }
+.footer {
+  border-top: 1px solid var(--border-color);
+}
 
-  .cookie-consent__text{
-    margin: 0 0 14px;
-    color: var(--font-color);
-    opacity: 0.95;
-    font-size: 0.95rem;
-  }
+.footer p{
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
 
-  .cookie-consent__actions{
-    display: flex;
-    justify-content: flex-end;
-  }
+.divider-coin{
+  height: 90px;
+  margin: 2.2rem 0;
+  background: center / contain no-repeat url("/static/divider-coin.png");
+}
 
-  /* przycisk korzysta z Twojego globalnego stylu button */
-  .cookie-consent__btn{
-    background: rgba(250,218,63,0.10);
-  }
+/* Zamiana wszystkich <hr> na divider z obrazka */
+hr{
+  border: 0;
+  height: 50px;            /* dopasuj */
+  margin: 0px;        /* dopasuj */
+  background: center / contain no-repeat url("/static/divider-coin.png");
+  scale: 70%
+}
+
+/* „stary” wygląd hr tylko tam, gdzie dodasz klasę */
+hr.hr-default{
+  all: unset;
+  display: block;
+  border: 0;
+  border-top: 1px solid var(--highlight);
+  height: 0;
+}
+
+.terms input[type="checkbox"]{
+  accent-color: var(--highlight);
+}

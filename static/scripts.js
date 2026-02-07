@@ -1,7 +1,25 @@
+function showNotice(msg, ms = 2000, type = "info") {
+  const el = document.getElementById("notice-toast");
+  if (!el) return;
+
+  el.textContent = msg;
+
+  // ustaw klasę zależnie od typu
+  el.classList.toggle("notice-error", type === "error");
+  el.classList.toggle("notice-info", type === "info");
+
+  el.style.opacity = "1";
+  clearTimeout(window.__noticeTimer);
+  window.__noticeTimer = setTimeout(() => {
+    el.style.opacity = "0";
+    el.classList.remove("notice-error"); // posprzątaj po zniknięciu
+  }, ms);
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const shareLinks = document.querySelectorAll('.share-link');
-    const copyNotice = document.getElementById('copy-notice');
-
+    
     shareLinks.forEach(link => {
         const modalId = link.dataset.modal;
         const modal = document.getElementById(modalId);
@@ -31,8 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const linkToCopy = copyBtn.dataset.link;
             navigator.clipboard.writeText(linkToCopy).then(() => {
                 closeModal(modal);
-                copyNotice.style.opacity = '1';
-                setTimeout(() => copyNotice.style.opacity = '0', 2000);
+                showNotice("Link skopiowany do schowka", 2000);
             });
         });
     });
@@ -156,3 +173,25 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.hidden = true;
   });
 })();
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get("captcha") === "1") {
+    showNotice("Błąd captcha. Spróbuj ponownie.", 2500, "error");
+
+    // usuń parametr, żeby po F5 nie pokazywało znowu
+    url.searchParams.delete("captcha");
+    window.history.replaceState({}, "", url.toString());
+  }
+});
+
+ const ta = document.getElementById("contact-message");
+  const left = document.getElementById("chars-left");
+  if (ta && left) {
+    const max = ta.getAttribute("maxlength") ? parseInt(ta.getAttribute("maxlength"), 10) : 1000;
+    left.textContent = String(max);
+    const update = () => left.textContent = String(Math.max(0, max - ta.value.length));
+    ta.addEventListener("input", update);
+    update();
+  }
