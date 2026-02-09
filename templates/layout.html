@@ -47,8 +47,27 @@
 <body>
   <a class="skip-link" href="#main">Przejdź do treści</a>
 
+  <div class="mobile-topbar" aria-label="Menu mobilne">
+  <button class="mobile-topbar__btn" type="button"
+          data-drawer="sidebar"
+          aria-controls="drawer-sidebar"
+          aria-expanded="false">
+    ☰ Menu
+  </button>
+
+  <button class="mobile-topbar__btn" type="button"
+          data-drawer="widgets"
+          aria-controls="drawer-widgets"
+          aria-expanded="false">
+    ★ Widżety
+  </button>
+</div>
+
+<div class="drawer-backdrop" hidden></div>
+
+
   <div class="layout">
-    <aside class="sidebar" aria-label="Panel boczny">
+    <aside id="drawer-sidebar" class="sidebar" aria-label="Panel boczny">
       {% include "partials/sidebar.html" %}
     </aside>
 
@@ -56,7 +75,7 @@
       {% block content %}{% endblock %}
     </main>
 
-    <aside class="widget-bar" aria-label="Widżety">
+    <aside id="drawer-widgets" class="widget-bar" aria-label="Widżety">
       {% include "partials/widget-bar.html" %}
     </aside>
   </div>

@@ -1,3 +1,5 @@
+
+
 /* =========================
    GLOBAL THEME
    ========================= */
@@ -159,7 +161,7 @@ a.btn,
   gap: var(--btn-gap);
 
   padding: var(--btn-padding-y) var(--btn-padding-x);
-  border: var(--border);
+  /* border: var(--border); */
   border-radius: var(--btn-radius);
   background: transparent;
 
@@ -201,7 +203,7 @@ a.btn:active,
   min-height: 0;
 
   display: grid;
-  grid-template-columns: 240px 1fr 320px;
+  grid-template-columns: 160px 1fr 320px;
   gap: var(--layout-gap);
   align-items: stretch;
 
@@ -219,7 +221,17 @@ a.btn:active,
   overflow-x: hidden;
 }
 
-.widget-bar div, .sidebar div {
+.sidebar {
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.sidebar ul {
+  margin: 0px;
+  justify-content: start;
+}
+
+.widget-bar div {
   background-color: var(--bg-color2)
 }
 
@@ -271,14 +283,13 @@ a.btn:active,
   gap: 10px;
 
   padding: 10px 12px;
-  border: var(--border);
+  /* border: var(--border); */
   border-radius: var(--border-radius-var);
 
-  background: var(--bg-color2);
+  /* background: var(--bg-color2); */
   color: var(--font-color);
 
   text-decoration: none;
-  font-weight: 700;
 
   transition: border-color .15s ease, background-color .15s ease, transform .05s ease;
 }
@@ -316,7 +327,7 @@ a.btn:active,
    WIDGET BAR
    ========================= */
 .widget-bar > div{
-  border: var(--border);
+  /* border: var(--border); */
   border-radius: var(--border-radius-var);
   margin-bottom: 10px;
   padding: 10px;
@@ -324,8 +335,7 @@ a.btn:active,
 
 .total-posts-widget{
   text-align: center;
-  font-weight: 800;
-  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 /* Search box */
@@ -429,6 +439,8 @@ a.btn:active,
   margin-bottom: 20px;
   max-width: 100%;
   width: max-content;
+
+  align-items: flex-start;
 }
 
 .post-preview h2{ color: var(--font-color); }
@@ -449,7 +461,7 @@ a.btn:active,
 
 .post-preview-meta{
   color: var(--dim-font);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   margin: 0 0 6px 12px;
 }
 
@@ -460,6 +472,8 @@ a.btn:active,
 
   overflow: hidden;
   border-radius: var(--border-radius-var);
+
+  align-self: flex-start;
 }
 .post-preview-left a{
   display: block;
@@ -957,7 +971,7 @@ ul li::before{
    NEWSLETTER WIDGET
    ========================= */
 .newsletter-widget{
-  border: var(--border);
+  /* border: var(--border); */
   border-radius: var(--border-radius-var);
   padding: 10px;
   background: transparent;
@@ -1201,8 +1215,160 @@ hr.hr-default{
   border: 0;
   border-top: 1px solid var(--highlight);
   height: 0;
+  margin: 10px 0 10px 0;
 }
 
 .terms input[type="checkbox"]{
   accent-color: var(--highlight);
+}
+
+/* =========================
+   MOBILE DRAWERS (sidebar + widgets)
+   ========================= */
+.mobile-topbar{
+  display: none;
+}
+
+@media (max-width: 980px){
+  /* pokazuj tylko treść domyślnie */
+  .layout{
+    grid-template-columns: 1fr; /* u Ciebie już jest, ale zostawiam dla pewności */
+  }
+
+  .mobile-topbar{
+    display: flex;
+    gap: 10px;
+    padding: 10px var(--padding-global);
+    border-bottom: var(--border);
+    background: var(--bg-color);
+  }
+
+  /* żeby topbar nie zasłaniał treści */
+  .layout{
+    padding-top: 0; /* topbar jest poza layoutem */
+  }
+
+  /* domyślnie schowane */
+  .sidebar,
+  .widget-bar{
+    display: none;
+  }
+
+  /* backdrop */
+  .drawer-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+    z-index: 9000;
+  }
+
+  @media (max-width: 980px){
+  .sidebar,
+  .widget-bar{
+    display: none;
+  }
+
+  /* backdrop */
+  .drawer-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+    z-index: 9000;
+  }
+
+  /* wspólne style drawera (bez display!) */
+  body.drawer-open .sidebar,
+  body.drawer-open .widget-bar{
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: min(360px, 86vw);
+    z-index: 9100;
+    background: var(--bg-color);
+    border: var(--border);
+    border-radius: 0;
+    padding: var(--padding-global);
+    overflow: auto;
+  }
+
+  /* TYLKO aktywny panel ma się wyświetlać */
+  body.drawer-sidebar .sidebar{
+    display: block;
+    left: 0;
+  }
+
+  body.drawer-widgets .widget-bar{
+    display: block;
+    right: 0;
+  }
+}
+
+
+  /* który drawer otwarty */
+  body.drawer-sidebar .sidebar{ left: 0; }
+  body.drawer-widgets .widget-bar{ right: 0; }
+
+  /* przyciski topbar w Twoim stylu guzików */
+  .mobile-topbar__btn{
+    width: 100%;
+    justify-content: center;
+    color: var(--highlight);
+    font-weight: 800;
+  }
+}
+
+
+@media (max-width: 980px){
+  body.drawer-open{
+    overflow: hidden;
+  }
+  .post-preview-right p{
+    font-size: 12px;
+  }
+}
+
+/* Desktop: thumbnail ma zawsze stały rozmiar, niezależnie od resize okna */
+@media (min-width: 981px){
+  .post-preview-left{
+    width: var(--thumb-size);
+    flex: 0 0 var(--thumb-size);
+
+    min-width: var(--thumb-size);
+    max-width: var(--thumb-size);
+  }
+
+}
+
+.icon {
+  background-color: var(--highlight);
+  border: 1px solid var(--bg-color2);
+  border-radius: 5px;
+}
+
+.sidebar-nav ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.sidebar-nav li{
+  text-align: left;
+}
+
+.sidebar-nav a{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .6rem;
+  text-align: left;
+  font-weight: normal;;
+}
+
+.sidebar-nav .icon{
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
 }

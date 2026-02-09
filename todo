@@ -1,8 +1,20 @@
+1. zmniejszyć trochę szerokość sidebara i widget bara, też czcionki
+
 1. dodać obsługę endpointa formularza kontaktowego
+
+1. responsywność!!! przede wszystkim thumbnaile z post-preview, potem prawidłowe wyświetlanie na telefonach komórkowych
 
 1. dodać google analytics
 
+1. panel admina?
+
+1. ochrona ddos
+
 2. Mapa strony w XML dla celów seo
+
+1. Założyć media społecznościowe
+
+1. dodać terminarz wpisów jako widget?
 
 3. stworzyć i zalinkować w stopce i stronie kontakt media społecznościowe - facebook, twitter, instagram, youtube
 
@@ -13,6 +25,8 @@
 1. Zrobić automatyczne wstawanie strony po błędzie
 
 1. Ograniczyć wypytywanie pocketbase 
+
+1. po deployu zrobić pentesty
 
 1. zrobić widget "serie" podobny do widgeta "categories"
 
@@ -30,7 +44,7 @@
 
 1. wszystkie style mają być nie inline, ale w style.css
 
-1. do footera dodać ikonki mediów społecznościowych
+1. do footera dodać ikonki mediów społecznościowych i github
 
 1. Pinned post u góry
 

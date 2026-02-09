@@ -195,3 +195,53 @@ document.addEventListener("DOMContentLoaded", () => {
     ta.addEventListener("input", update);
     update();
   }
+
+  (function () {
+  const backdrop = document.querySelector('.drawer-backdrop');
+  const buttons = document.querySelectorAll('[data-drawer]');
+
+  if (!backdrop || !buttons.length) return;
+
+  function closeDrawer() {
+    document.body.classList.remove('drawer-open', 'drawer-sidebar', 'drawer-widgets');
+    backdrop.hidden = true;
+    buttons.forEach(b => b.setAttribute('aria-expanded', 'false'));
+  }
+
+  function openDrawer(which) {
+  // wyczyść stan
+  document.body.classList.remove('drawer-open', 'drawer-sidebar', 'drawer-widgets');
+
+  // ustaw nowy stan
+  document.body.classList.add('drawer-open');
+  document.body.classList.add(which === 'sidebar' ? 'drawer-sidebar' : 'drawer-widgets');
+
+  backdrop.hidden = false;
+
+  buttons.forEach(b => {
+    b.setAttribute('aria-expanded', b.dataset.drawer === which ? 'true' : 'false');
+  });
+}
+
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const which = btn.dataset.drawer;
+      const isOpen = document.body.classList.contains('drawer-open') &&
+                     document.body.classList.contains(which === 'sidebar' ? 'drawer-sidebar' : 'drawer-widgets');
+
+      if (isOpen) closeDrawer();
+      else openDrawer(which);
+    });
+  });
+
+  backdrop.addEventListener('click', closeDrawer);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+
+  // bezpieczeństwo: po przekroczeniu breakpointu wyczyść stan
+  const mq = window.matchMedia('(max-width: 980px)');
+  mq.addEventListener?.('change', (e) => { if (!e.matches) closeDrawer(); });
+})();
