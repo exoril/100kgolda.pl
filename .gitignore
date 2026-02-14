@@ -1,1 +1,53 @@
+# ===== Python / FastAPI =====
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+
+# ===== Virtual envs =====
+.venv/
+venv/
+env/
+ENV/
+
+# ===== Environment / secrets =====
+.env
+.env.*
+!.env.example
+
+# ===== OS / Editor junk =====
+.DS_Store
+Thumbs.db
+
+# ===== IDEs =====
+.vscode/
+.idea/
+*.iml
+
+# ===== Logs folder (you have logs/) =====
 logs/
+
+# ===== PocketBase runtime data (DO NOT COMMIT) =====
+pb_data/
+pocketbase.exe
+
+# ===== Node / frontend tooling (you have package*.json) =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+.next/
+out/
+
+# ===== Optional: local cache / temp =====
+.cache/
+tmp/
+*.tmp
