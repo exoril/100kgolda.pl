@@ -1,20 +1,36 @@
 from typing import Any, Dict, List, Tuple, Optional
-from app.core.config import POSTS_COLLECTION
+from app.core.config import POSTS_COLLECTION, PB_URL
 from app.pb.client import pb_request
-from app.cache import cache, key
-
+import httpx
 
 def pb_escape(s: str) -> str:
-    # Minimalne escapowanie, żeby filtry PB nie padały na cudzysłowach/backslashu
     return (s or "").replace("\\", "\\\\").replace('"', '\\"')
+
+async def pb_increment_post_views(post_id: str) -> None:
+    """
+    Inkrementuje pole `views` w rekordzie posta w PocketBase o 1.
+    (Prosta wersja: GET aktualnej wartości -> PATCH +1)
+    """
+    if not post_id:
+        return
+
+    async with httpx.AsyncClient(timeout=5) as client:
+        # 1) Pobierz aktualny rekord (żeby poznać current views)
+        r = await client.get(f"{PB_URL}/api/collections/{POSTS_COLLECTION}/records/{post_id}")
+        r.raise_for_status()
+        post = r.json()
+
+        current = int(post.get("views") or 0)
+
+        # 2) Zapisz +1
+        r2 = await client.patch(
+            f"{PB_URL}/api/collections/{POSTS_COLLECTION}/records/{post_id}",
+            json={"views": current + 1},
+        )
+        r2.raise_for_status()
 
 
 async def list_posts(page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, Any]], int]:
-    ck = key("posts", "list", page, per_page)
-    cached = await cache.get(ck)
-    if cached is not None:
-        return cached["items"], cached["total_pages"]
-
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
         "filter": "published=true",
@@ -31,16 +47,11 @@ async def list_posts(page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, A
     total_items = int(data.get("totalItems", 0))
     total_pages = (total_items + per_page - 1) // per_page
 
-    await cache.set(ck, {"items": items, "total_pages": total_pages}, ttl=20)
     return items, total_pages
 
 
 async def search_posts(q: str, page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, Any]], int]:
     q2 = pb_escape(q)
-    ck = key("posts", "search", q2, page, per_page)
-    cached = await cache.get(ck)
-    if cached is not None:
-        return cached["items"], cached["total_pages"]
 
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
@@ -58,16 +69,11 @@ async def search_posts(q: str, page: int = 1, per_page: int = 5) -> Tuple[List[D
     total_items = int(data.get("totalItems", 0))
     total_pages = (total_items + per_page - 1) // per_page
 
-    await cache.set(ck, {"items": items, "total_pages": total_pages}, ttl=20)
     return items, total_pages
 
 
 async def list_posts_by_category(category: str, page: int = 1, per_page: int = 5) -> Tuple[List[Dict[str, Any]], int]:
     cat = pb_escape(category)
-    ck = key("posts", "category", cat, page, per_page)
-    cached = await cache.get(ck)
-    if cached is not None:
-        return cached["items"], cached["total_pages"]
 
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {
@@ -85,18 +91,11 @@ async def list_posts_by_category(category: str, page: int = 1, per_page: int = 5
     total_items = int(data.get("totalItems", 0))
     total_pages = (total_items + per_page - 1) // per_page
 
-    await cache.set(ck, {"items": items, "total_pages": total_pages}, ttl=20)
     return items, total_pages
 
 
 async def get_post_by_slug(slug: str) -> Optional[Dict[str, Any]]:
     s = pb_escape(slug)
-
-    # (opcjonalnie) krótki cache dla detalu posta
-    ck = key("posts", "slug", s)
-    cached = await cache.get(ck)
-    if cached is not None:
-        return cached
 
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": f'slug="{s}" && published=true', "perPage": 1, "page": 1}
@@ -107,17 +106,10 @@ async def get_post_by_slug(slug: str) -> Optional[Dict[str, Any]]:
     items = (resp.json() or {}).get("items") or []
     post = items[0] if items else None
 
-    if post:
-        await cache.set(ck, post, ttl=20)  # krótko, bo content się może zmieniać
     return post
 
 
 async def get_post_count() -> int:
-    ck = key("posts", "count")
-    cached = await cache.get(ck)
-    if cached is not None:
-        return int(cached)
-
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": "published=true", "perPage": 1, "page": 1}
     resp = await pb_request("GET", url, params=params)
@@ -125,16 +117,10 @@ async def get_post_count() -> int:
         return 0
 
     total = int((resp.json() or {}).get("totalItems", 0))
-    await cache.set(ck, total, ttl=300)
     return total
 
 
 async def list_categories() -> List[str]:
-    ck = key("posts", "categories")
-    cached = await cache.get(ck)
-    if cached is not None:
-        return cached
-
     url = f"/api/collections/{POSTS_COLLECTION}/records"
     params = {"filter": "published=true", "perPage": 1000, "page": 1, "fields": "category"}
     resp = await pb_request("GET", url, params=params)
@@ -144,7 +130,6 @@ async def list_categories() -> List[str]:
     items = (resp.json() or {}).get("items") or []
     cats = sorted({(p.get("category") or "Bez kategorii") for p in items})
 
-    await cache.set(ck, cats, ttl=600)
     return cats
 
 

@@ -56,7 +56,6 @@ async def get_client() -> httpx.AsyncClient:
 
     return _async_client
 
-
 async def pb_request(
     method: str,
     url: str,

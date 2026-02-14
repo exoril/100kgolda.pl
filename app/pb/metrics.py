@@ -25,10 +25,6 @@ _statuses = defaultdict(int)
 _started_at = time.time()
 
 def _bucket(method: str, path: str) -> str:
-    """
-    Grupowanie: GET posts / GET post_stats / GET comments itd.
-    PocketBase: /api/collections/{collection}/...
-    """
     parts = path.strip("/").split("/")
     if len(parts) >= 4 and parts[0] == "api" and parts[1] == "collections":
         coll = parts[2]

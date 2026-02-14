@@ -1,5 +1,3 @@
-
-
 <div class="searchbox-widget">
   <form action="/search" method="get">
     <input
@@ -38,7 +36,7 @@
       {% for p in top_posts %}
         <li>
           <a href="/post/{{ p.slug }}">{{ p.title }}</a>
-          <span class="widget-count">({{ p.stats.views_total }})</span>
+          <span class="widget-count">({{ p.views or 0 }})</span>
         </li>
       {% endfor %}
     </ol>
@@ -50,12 +48,14 @@
 <div class="most-commented-posts-widget">
   <h3>Najczęściej komentowane:</h3>
 
-  {% if top_commented %}
+  {% set items = top_commented | selectattr('comments_on') | list if top_commented else [] %}
+
+  {% if items %}
     <ol>
-      {% for p in top_commented %}
+      {% for p in items %}
         <li>
           <a href="/post/{{ p.slug }}">{{ p.title }}</a>
-          <span class="widget-count">({{ p.stats.comments_total }})</span>
+          <span class="widget-count">({{ p.comments or 0 }})</span>
         </li>
       {% endfor %}
     </ol>
@@ -63,6 +63,7 @@
     <p class="widget-empty">Brak danych.</p>
   {% endif %}
 </div>
+
 
 <!-- <div class="newsletter-widget">
   <h3>Zapisz się do newslettera!</h3>
@@ -88,6 +89,5 @@
 </div> -->
 
 <div class="total-posts-widget">
-    <p>Ilość wpisów: {{ post_count }}</p>
+  <p>Ilość wpisów: {{ post_count }}</p>
 </div>
-

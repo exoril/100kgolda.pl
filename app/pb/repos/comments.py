@@ -5,25 +5,17 @@ from zoneinfo import ZoneInfo
 from app.core.config import COMMENTS_COLLECTION
 from app.pb.client import pb_request
 
-
 WARSAW = ZoneInfo("Europe/Warsaw")
-
 
 def pb_escape(s: str) -> str:
     return (s or "").replace("\\", "\\\\").replace('"', '\\"')
 
-
 def format_dt_pl_warsaw(dt_str: str) -> str:
-    """
-    PocketBase daje ISO w UTC (często z 'Z').
-    Konwertujemy na Europe/Warsaw i zwracamy 'dd.mm.yyyy HH:MM'.
-    """
     if not dt_str:
         return ""
     dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))  # aware UTC
     dt = dt.astimezone(WARSAW)
     return dt.strftime("%d.%m.%Y %H:%M")
-
 
 async def count_comments(post_id: str) -> int:
     url = f"/api/collections/{COMMENTS_COLLECTION}/records"
@@ -33,7 +25,6 @@ async def count_comments(post_id: str) -> int:
     if resp.status_code != 200:
         return 0
     return int((resp.json() or {}).get("totalItems", 0))
-
 
 async def add_comment(
     author: str,

@@ -1,18 +1,9 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.pb.metrics import snapshot, reset
-from app.pb.repos.posts import list_all_post_ids
-from app.services.rebuild import rebuild_post_stats
 from app.cache import cache
 
 router = APIRouter(prefix="/admin")
-
-@router.post("/rebuild-stats")
-async def rebuild_all_stats():
-    post_ids = await list_all_post_ids()
-    for pid in post_ids:
-        await rebuild_post_stats(pid)
-    return {"ok": True, "posts": len(post_ids)}
 
 @router.get("/metrics.json")
 async def metrics_json():

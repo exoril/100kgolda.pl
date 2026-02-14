@@ -1,8 +1,11 @@
 MVP:
-skonsultować treść polityki prywatności i warunków krozystania z serwisu in-depth z chatgpt
+dodać wszystko na repo github, zrobić je publiczne, dać do chatgpt do analizy
+dodawanie series nie działa- naprawić
+post-preview nie liczy komentarzy, tylko pokazuje "0 komentarzy" - naprawić
+przejrzeć ponownie api rules w pb
+
 3. dodać linki do stron społecznościowych w sidebarze/stopce oraz stronie kontakt
 4. zrobić prosty panel admina, na razie tylko z metrics, później można dodać coś jeszcze
-7. dodać do polityki informację o rodzaju przechowywanych cookies technicznych
 9. dodać meta_description do każdego posta w kolekcji posts PB
 10. zmienić w configu widoczność hasła i tokenów captcha (teraz są plain text - niedobrze) na zmienną środowiskową
 zapytać chatgpt o komunikaty w konsoli przeglądarki i co można z nimi zrobić
@@ -11,7 +14,6 @@ skonsultować z chatgpt bezpieczeństwo dodawania komentarzy (m.in. wklejanie ko
 pousuwać komentarze z wszystkich plików
 ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
 przetestować działania modali i toastów w responsywnych stanach strony
-zapytać chatgpt o bezpieczeństwo komentarzy i formularza kontaktowego, czy są jakieś dodatkowe zabezpieczenia, które można by dodać (przede wszystkim przed wklejaniem kodu lub innymi manipulacjami)
 
 
 TYLE - hostować, po zahostowaniu:

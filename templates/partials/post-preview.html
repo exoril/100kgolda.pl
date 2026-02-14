@@ -1,24 +1,31 @@
 <div class="post-preview">
-    <div class="post-preview-left">
-        <a href="/post/{{ post.slug | urlencode }}">
-            <img class="post-thumbnail"
-                 src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}"
-                 alt="{{ post.title }} - zdjęcie do wpisu"
-                 loading="lazy" 
-                 decoding="async">
-        </a>
+  <div class="post-preview-left">
+    <a href="/post/{{ post.slug | urlencode }}">
+      <img class="post-thumbnail"
+           src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}"
+           alt="{{ post.title }} - zdjęcie do wpisu"
+           loading="lazy"
+           decoding="async">
+    </a>
+  </div>
+
+  <div class="post-preview-right">
+    <h2><a href="/post/{{ post.slug | urlencode }}">{{ post.title }}</a></h2>
+
+    <div class="post-preview-meta">
+        <a class="category-link" href="/kategorie/{{ post.category }}">{{ post.category }}</a>
+        | {{ post.created }}
+        | {{ post.creator }}
+        | 👁 {{ post.views or 0 }} wyświetleń
+        {% if post.comments_on %}
+            | {{ post.comments or 0 }} komentarzy
+        {% endif %}
+        | {{ post.reading_time }} minut(y) czytania
     </div>
-    <div class="post-preview-right">
-        <h2><a href="/post/{{ post.slug | urlencode }}">{{ post.title }}</a></h2>
-        <div class="post-preview-meta">
-            <a class="category-link" href="/kategorie/{{ post.category }}">{{ post.category }}</a>
-            | {{ post.created }}
-            | {{ post.creator }}
-            | 👁 {{ post.stats.views_total }} wyświetleń
-            | {{ post.stats.comments_total }} komentarzy
-            | {{ post.reading_time }} minut(y) czytania
-        </div>
-        <p class="post-preview-text">{{ post.content | striptags | truncate(500, True, "...") }}
-        <a class="post-preview-readmore" href="/post/{{ post.slug | urlencode }}">czytaj dalej →</a></p>
-    </div>
+
+    <p class="post-preview-text">
+      {{ post.content | striptags | truncate(500, True, "...") }}
+      <a class="post-preview-readmore" href="/post/{{ post.slug | urlencode }}">czytaj dalej →</a>
+    </p>
+  </div>
 </div>

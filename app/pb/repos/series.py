@@ -2,18 +2,12 @@
 from typing import Any, Dict
 from app.core.config import SERIES_COLLECTION
 from app.pb.client import pb_request
-from app.cache import cache, key
 
 SERIES_TTL = 3600  # sekund (1h)
 
 async def get_series(series_id: str) -> Dict[str, Any]:
     if not series_id:
         return {}
-
-    ck = key("series", series_id)
-    cached = await cache.get(ck)
-    if cached is not None:
-        return cached
 
     url = f"/api/collections/{SERIES_COLLECTION}/records/{series_id}"
     resp = await pb_request("GET", url)
@@ -29,7 +23,6 @@ async def get_series(series_id: str) -> Dict[str, Any]:
         "description": (data.get("description") or "").strip(),
     }
 
-    await cache.set(ck, out, ttl=SERIES_TTL)
     return out
 
 

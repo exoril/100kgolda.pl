@@ -1,12 +1,15 @@
 <h3>Komentarze: ({{ comments_total_items if comments_total_items is not none else (post.comments_total or 0) }})</h3>
 
-{% if comments %}
+{% set approved_comments = comments | selectattr('approved') | list if comments else [] %}
+
+{% if approved_comments %}
     <ul class="comments-list">
-    {% for comment in comments %}
+    {% for comment in approved_comments %}
         <li>
             <p><strong>{{ comment.author }}</strong>
                 {% if comment.email %}(<a href="mailto:{{ comment.email }}">{{ comment.email }}</a>){% endif %} napisał(a):
-                <span class="comment-date">Dodano {{ comment.created_pl[:16] }}</span> </p>
+                <span class="comment-date">Dodano {{ comment.created_pl[:16] }}</span>
+            </p>
             <p>{{ comment.content }}</p>
         </li>
     {% endfor %}

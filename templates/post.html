@@ -15,72 +15,73 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ post.title }}</h1>
-    
-    <div class="post-content-meta">
-  <p>
-    <a href="/kategorie/{{ post.category }}">{{ post.category }}</a> 
-    | {{ post.created }} 
-    | {{ post.creator }} 
-    | 👁 {{ post.stats.views_total }} wyświetleń 
-    | {{ post.stats.comments_total  }} komentarzy
-    | {{ post.reading_time }} minut(y) czytania
-    | <a href="#" class="share-link" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
-  </p>
-</div>
-    {% if post.thumbnail %}
-        <img class="post-inside-thumbnail"
-             src="{{ post.thumbnail }}"
-             alt="Thumbnail {{ post.title }}"
-             loading="eager"
-             decoding="async">
-    {% endif %}
+  <h1>{{ post.title }}</h1>
 
-    {% include "partials/toc.html" %}
+  <div class="post-content-meta">
+    <p>
+      <a href="/kategorie/{{ post.category }}">{{ post.category }}</a>
+      | {{ post.created }}
+      | {{ post.creator }}
+      | 👁 {{ post.views or 0 }} wyświetleń 
+        {% if post.comments_on %}
+            | {{ post.comments or 0 }} komentarzy
+        {% endif %}
+      | {{ post.reading_time }} minut(y) czytania
+      | <a href="#" class="share-link" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
+    </p>
+  </div>
 
-    <div class="post-content">
-        {{ lazy_images(post.content) | safe }}
-    </div>
+  {% if post.thumbnail %}
+    <img class="post-inside-thumbnail"
+         src="{{ post.thumbnail }}"
+         alt="Thumbnail {{ post.title }}"
+         loading="eager"
+         decoding="async">
+  {% endif %}
 
-    <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
-        <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
-    </div>
-    <hr class="hr-default"><br>
+  {% include "partials/toc.html" %}
 
-    {% if post.comments_on %}
-  <div id="comments" class="comments-container">
+  <div class="post-content">
+    {{ lazy_images(post.content) | safe }}
+  </div>
+
+  <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
+    <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
+  </div>
+
+  <hr class="hr-default"><br>
+
+  {% if post.comments_on %}
+    <div id="comments" class="comments-container">
       <div class="comments-section">
-          {% include "partials/comments-section.html" %}
-          
-          {% if comments_total_pages and comments_total_pages > 1 %}
-              <div class="comments-pagination">
-              {% if comments_page > 1 %}
-                  <a href="?cpage={{ comments_page - 1 }}#comments">← Poprzednia</a>
-              {% endif %}
+        {% include "partials/comments-section.html" %}
 
-              <span>Strona {{ comments_page }} z {{ comments_total_pages }}</span>
+        {% if comments_total_pages and comments_total_pages > 1 %}
+          <div class="comments-pagination">
+            {% if comments_page > 1 %}
+              <a href="?cpage={{ comments_page - 1 }}#comments">← Poprzednia</a>
+            {% endif %}
 
-              {% if comments_page < comments_total_pages %}
-                  <a href="?cpage={{ comments_page + 1 }}#comments">Następna →</a>
-              {% endif %}
-              </div>
-          {% endif %}
+            <span>Strona {{ comments_page }} z {{ comments_total_pages }}</span>
+
+            {% if comments_page < comments_total_pages %}
+              <a href="?cpage={{ comments_page + 1 }}#comments">Następna →</a>
+            {% endif %}
+          </div>
+        {% endif %}
       </div>
 
       <div class="add-comment">
-          {% include "partials/add_comment.html" %}
+        {% include "partials/add_comment.html" %}
       </div>
-  </div>
-{% else %}
-  <p class="comments-disabled">
-    Komentarze dla tego wpisu zostały wyłączone.
-  </p>
-{% endif %}
-
-
-
+    </div>
+  {% else %}
+    <p class="comments-disabled">
+      Komentarze dla tego wpisu zostały wyłączone.
+    </p>
+  {% endif %}
 {% endblock %}
 
 {% block modals %}
-    {% include "partials/share-modal.html" %}
+  {% include "partials/share-modal.html" %}
 {% endblock %}

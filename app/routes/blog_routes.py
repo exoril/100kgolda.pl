@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from app.web.render import render_template, render_pagination
 from app.web.toc import build_toc
 from app.services import blog as blog_service
-from app.services.counters import count_unique_view, sync_comments_total
 from app.pb.repos.comments import get_comments_paginated, add_comment
 from app.services.recaptcha import verify_recaptcha
 
@@ -60,11 +59,18 @@ async def post_detail(
     if not post:
         raise HTTPException(status_code=404, detail="Post nie znaleziony")
 
+    # ✅ visitor id (jedno źródło prawdy) — to samo podejście jak przy komentarzach
+    vid = getattr(request.state, "visitor_id", None) or (request.cookies.get("vid") or "").strip()
+
+    # ✅ inkrementuj views tylko jeśli to nowy (post_id, vid) w logu
+    if vid:
+        await blog_service.register_unique_view(post["id"], vid)
+
     # buduj TOC (a jeśli chcesz sterować “Komentarze” w TOC — zrobimy później w toc.py)
     post["content"], post["toc"] = build_toc(
-    post.get("content", ""),
-    include_comments=bool(post.get("comments_on")),
-)
+        post.get("content", ""),
+        include_comments=bool(post.get("comments_on")),
+    )
 
     # ✅ komentarze zależne od posts.comments_on (domyślnie True)
     comments_on = bool(post.get("comments_on", True))
@@ -102,7 +108,6 @@ async def post_detail(
         },
     )
 
-    await count_unique_view(request, response, post["id"])
     return response
 
 
@@ -249,6 +254,4 @@ async def add_comment_route(
     if not ok:
         raise HTTPException(status_code=500, detail="Nie udało się dodać komentarza")
 
-    await sync_comments_total(post["id"])
     return RedirectResponse(url=f"/post/{slug}?sent=1#comments", status_code=HTTP_303_SEE_OTHER)
-

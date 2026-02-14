@@ -10,17 +10,14 @@ class VisitorIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         vid = request.cookies.get(VID_COOKIE)
 
-        # podstawowa walidacja - nie chcemy śmieci w cookie
         if not vid or len(vid) < 16:
             vid = uuid.uuid4().hex
             request.state._set_vid_cookie = vid
 
-        # od teraz masz to w każdym endpointzie
         request.state.visitor_id = vid
 
         response: Response = await call_next(request)
 
-        # ustaw cookie tylko jeśli zostało wygenerowane
         new_vid = getattr(request.state, "_set_vid_cookie", None)
         if new_vid:
             response.set_cookie(
