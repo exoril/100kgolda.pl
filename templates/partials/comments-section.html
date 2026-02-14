@@ -6,7 +6,7 @@
         <li>
             <p><strong>{{ comment.author }}</strong>
                 {% if comment.email %}(<a href="mailto:{{ comment.email }}">{{ comment.email }}</a>){% endif %} napisał(a):
-                <span class="comment-date">Dodano {{ comment.created[:16] }}</span> </p>
+                <span class="comment-date">Dodano {{ comment.created_pl[:16] }}</span> </p>
             <p>{{ comment.content }}</p>
         </li>
     {% endfor %}

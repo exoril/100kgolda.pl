@@ -1,9 +1,10 @@
 import re, html, math
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 import asyncio
+import httpx
 
-from app.core.config import PB_URL, POSTS_COLLECTION
+from app.core.config import PB_URL, POSTS_COLLECTION, COMMENTS_COLLECTION
 from app.pb.repos import posts as posts_repo
 from app.pb.repos import stats as stats_repo
 from app.pb.repos.series import get_series_suffix, get_series
@@ -83,6 +84,7 @@ async def normalize_post_raw(post: dict) -> Dict[str, Any]:
         "creator": post.get("creator", "Nieznany autor"),
         "reading_time": estimate_reading_time(content),
         "meta_description": post.get("meta_description", ""),
+        "comments_on": bool(post.get("comments_on", True)),
     }
 
 
@@ -143,6 +145,10 @@ async def get_top_posts_by_stat(stat_field: str, limit: int = 3, scan: int = 50)
         if not raw_post:
             continue
 
+        # filtruj tylko dla topki komentarzy
+        if stat_field == "comments_total" and raw_post.get("comments_on", True) is False:
+            continue
+
         post = await normalize_post_raw(raw_post)
         post["stats"] = s
         out.append(post)
@@ -158,3 +164,32 @@ async def get_top_viewed_posts(limit: int = 3) -> List[Dict[str, Any]]:
 
 async def get_top_commented_posts(limit: int = 3) -> List[Dict[str, Any]]:
     return await get_top_posts_by_stat("comments_total", limit=limit)
+
+
+def _pb_parse_dt(created: str) -> datetime:
+    # PocketBase zwykle zwraca ISO, czasem z "Z"
+    return datetime.fromisoformat(created.replace("Z", "+00:00")).astimezone(timezone.utc)
+
+
+
+async def get_last_comment_created_for_post(vid: str, post_id: str) -> datetime | None:
+    params = {
+        "page": 1,
+        "perPage": 1,
+        "sort": "-created",
+        "fields": "created",
+        "filter": f'visitor_id="{vid}" && post="{post_id}"',
+    }
+
+    async with httpx.AsyncClient(timeout=5) as client:
+        r = await client.get(
+            f"{PB_URL}/api/collections/{COMMENTS_COLLECTION}/records",
+            params=params,
+        )
+        r.raise_for_status()
+        data = r.json()
+
+    items = data.get("items") or []
+    if not items:
+        return None
+    return _pb_parse_dt(items[0]["created"])

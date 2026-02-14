@@ -1,86 +1,53 @@
-1. zmniejszyć trochę szerokość sidebara i widget bara, też czcionki
+MVP:
+skonsultować treść polityki prywatności i warunków krozystania z serwisu in-depth z chatgpt
+3. dodać linki do stron społecznościowych w sidebarze/stopce oraz stronie kontakt
+4. zrobić prosty panel admina, na razie tylko z metrics, później można dodać coś jeszcze
+7. dodać do polityki informację o rodzaju przechowywanych cookies technicznych
+9. dodać meta_description do każdego posta w kolekcji posts PB
+10. zmienić w configu widoczność hasła i tokenów captcha (teraz są plain text - niedobrze) na zmienną środowiskową
+zapytać chatgpt o komunikaty w konsoli przeglądarki i co można z nimi zrobić
+zrobić coś z prawidłowym wyświetlaniem dodatkowyc img wewnątrz treści postów
+skonsultować z chatgpt bezpieczeństwo dodawania komentarzy (m.in. wklejanie kodu lub inne takie)
+pousuwać komentarze z wszystkich plików
+ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
+przetestować działania modali i toastów w responsywnych stanach strony
+zapytać chatgpt o bezpieczeństwo komentarzy i formularza kontaktowego, czy są jakieś dodatkowe zabezpieczenia, które można by dodać (przede wszystkim przed wklejaniem kodu lub innymi manipulacjami)
 
-1. dodać obsługę endpointa formularza kontaktowego
 
-1. responsywność!!! przede wszystkim thumbnaile z post-preview, potem prawidłowe wyświetlanie na telefonach komórkowych
-
-1. dodać google analytics
-
-1. panel admina?
-
-1. ochrona ddos
-
-2. Mapa strony w XML dla celów seo
-
-1. Założyć media społecznościowe
-
-1. dodać terminarz wpisów jako widget?
-
-3. stworzyć i zalinkować w stopce i stronie kontakt media społecznościowe - facebook, twitter, instagram, youtube
-
-3. różne optymalizacje seo, np. z książki e-marketing.
-
-1. edit w meta posta canonical i og:url po uploadzie na hosting
-
-1. Zrobić automatyczne wstawanie strony po błędzie
-
-1. Ograniczyć wypytywanie pocketbase 
-
-1. po deployu zrobić pentesty
-
-1. zrobić widget "serie" podobny do widgeta "categories"
-
-1. wazne: regulamin komentarzy + polityka prywatności + bezpieczeństwo
-
-1. dodać zabezpieczenie 1 komentarz/5-10minut
-
-1. dodać do formularza komentarzy checkbox "zapoznałem się i akceptuję regulamin komentarzy" do linkiem do regulaminu
-
-1. Cross-linking
-
-1. dodać w cyberfolks konta email: marcin@100kgolda.pl, moderacja@100kgolda.pl
-
-1. zmienic komunikat wymagający email i komentarza w fomularzu komentarzy
-
-1. wszystkie style mają być nie inline, ale w style.css
-
-1. do footera dodać ikonki mediów społecznościowych i github
-
-1. Pinned post u góry
-
-1. link do patronite
-
-1. usunąć zbędne pliki ze static (głównie nieużywane obrazki)
-
-1. "buy me a coffee" widget
-
-1. Dodać numerowanie kolejnych postów z danej serii
-
-1. po zahostowaniu strony: zadbać o automatyczne wstawanie strony po błędzie + dump logów do pliku, ważne: ograniczyć zapytania do pocketbase, dodać caching o sporym ttl!
-
-1b. Dodać obsługę newslettera.
-
-1a. Dodać modal z ładowaniem strony z ładnym efektem w CSS
-
-2. Zrobić kolekcję "pages" w PB
-
-5. W prawym sidebarze dodać tagi
-
-6. Dodać zawartość stron o mnie, o blogu, kontakt, moje projekty
-
-7. Do strony kontakt dodać formularz kontaktowy
-
-8. Dodać w stopce odnośnik do strony z prywatnością i bezpieczeństwem
-
-10. Przed uploadem FTP na hosting: zresetować wszystkie views, zrobić dobre zasady korzystania z API w UI PocketBase
-
-12. Zajać się zabezpieczeniami strony
-
-15: Może: admin panel.
-
-Rss Feed
-
-16. Zapobiec w jakis sposób sytuacji, gdy użytkownik celowo usuwa cookies i odświeża stronę, by nabić wyświetlenia.
-
-17. Dodać prostą, automatyczna moderację komentarzy przed dodaniem (głównie cenzura słów, zapobieganie wklejaniu kodu),
-     maksymalna długość komentarza, dodać paginację do komentarzy, możliwość lajkowania
+TYLE - hostować, po zahostowaniu:
+a. zrobić listę zaimplementowanych funkcjonalności so-far, w stronie o-blogu dodać sekcję "co dalej" z listą planowanych funkcjonalności i poprosić o feedback, sugestie, pomysły
+1. edit canonical i og:url w meta posta
+2. zrobić pentesty Kali Linuxem, zwłaszcza pod kątem formularza kontaktowego i panelu admina i komentarzy
+3. podpiąć google analytics (i poinformować o tym w polityce prywatności i modalu cookies) 
+4. podpiąć cloudflare i zadbać o ochronę ddos
+5. dodać mapę strony w XML dla celów SEO
+6. dodać obsługę newslettera
+7. poprawić responsywność strony, zwłaszcza na urządzeniach mobilnych
+8. dodać pasek ładowania u góry strony
+9. dodać terminarz wpisów jako widget
+10. różne optymalizacje SEO, np. z książki e-marketing
+11. dodać widget "serie" podobny do widgeta "categories"
+12. dodać możliwość dodawania tagów do postów i wyświetlania ich w widget barze
+13. porobić crosslinking między postami, zwłaszcza w ramach serii
+14. spróbować zmienic komunikaty w formualrzu komentarza wymagające imienia i contentu, captcha, checka regulaminu
+15. zmienić wszystkie style z inline do style.css
+16. porobić dalsze cachingi w oparciu o logi
+17. zrobić funkcjonalność pinned posta, layout w .content:
+     [              pinned post              ]      
+     [zwykły post] [zwykły post] [zwykły post]
+     [zwykły post] [zwykły post] [zwykły post]
+18. dodać patronite i "buy me a coffee" widget
+19. dodać numerowanie kolejnych postów z danej serii
+20. dodać licznik odwiedzin dla całej strony
+21. dodać funkcjonalność RSS feed
+22. dodać funkcjonalność "powiązane posty" (atuomatyczną, na podstawie tagów i serii)
+23. zapobiec w jakis sposób sytuacji, gdy użytkownik celowo usuwa cookies i odświeża stronę, by nabić wyświetlenia
+24. dodać prostą, automatyczna moderację komentarzy przed dodaniem (głównie cenzura słów, zapobieganie wklejaniu kodu, zapobieganie wklejaniu linków), możliwość lajkowania, odpowiedzi na komentarz
+25. partnerzy bloga:
+     a. igniscent
+     b. manifaktura
+     c. andre-tech
+     d. zespół new life
+26. zrobić automatyczne dodawanie taga <hr> przed każdym nagłówkiem h2
+27. dodać do kolekcji posts pole "sources" i wyświetlać je na końcu posta jako listę linków
+28. zmienić wysyłkę formularza z formularz@100kgolda.pl na marcin@100kgolda.pl, żeby oszczędzić skrzynki pocztowe oraz ułatwić zarządzanie i korzystanie z maila kontaktowego i skrzynki pocztowej (1 do sprawdzania zamiast 2)

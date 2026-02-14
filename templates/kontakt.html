@@ -21,6 +21,13 @@
             </label>
             <textarea name="message" id="contact-message" rows="8" required maxlength="1000">{{ prefill_message or '' }}</textarea>
             <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+            <label class="terms">
+            <input type="checkbox" name="terms_accepted" id="terms_accepted" required>
+            Zapoznałem(-am) się z
+            <a href="/warunki" target="_blank" rel="noopener">warunkami korzystania z serwisu</a>
+            oraz <a href="/polityka-prywatnosci" target="_blank" rel="noopener">polityką prywatności</a>
+                i akceptuję ich postanowienia.<span style="color:red">*</span>
+        </label>
             <button type="submit">Wyślij</button>
         </form>
     </div>

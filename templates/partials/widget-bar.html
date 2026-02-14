@@ -8,6 +8,7 @@
       name="q"
       placeholder="Szukaj..."
       value="{{ query or '' }}"
+      autocomplete="off"
     >
   </form>
 </div>
@@ -63,7 +64,7 @@
   {% endif %}
 </div>
 
-<div class="newsletter-widget">
+<!-- <div class="newsletter-widget">
   <h3>Zapisz się do newslettera!</h3>
 
   <form action="/newsletter" method="post" class="newsletter-form">
@@ -75,7 +76,7 @@
       placeholder="Twój e-mail"
       required
       maxlength="80"
-      autocomplete="email"
+      autocomplete="off"
     >
 
     <button type="submit">Zapisz</button>
@@ -84,7 +85,7 @@
       Zero spamu. W każdej chwili możesz się wypisać.
     </p>
   </form>
-</div>
+</div> -->
 
 <div class="total-posts-widget">
     <p>Ilość wpisów: {{ post_count }}</p>

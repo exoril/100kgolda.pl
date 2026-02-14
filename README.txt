@@ -1,7 +1,7 @@
 Aby uruchomić projekt:
 
 1. Odpal pocketbase w terminalu za pomocą komendy:
-./pocketbase serve
+./pocketbase serve --http="127.0.0.1:8090"
 
 Tymczasowe passy:
     marcinjakubgolda@gmail.com
@@ -12,3 +12,6 @@ Tymczasowe passy:
 uvicorn main:app --reload
 
 Gotowe
+
+Dostęp SSH do panelu admina:
+ssh -L 8090:127.0.0.1:8090 USER@IP_SERWERA (nie testowane jeszcze)

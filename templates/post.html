@@ -28,7 +28,6 @@
     | <a href="#" class="share-link" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
   </p>
 </div>
-
     {% if post.thumbnail %}
         <img class="post-inside-thumbnail"
              src="{{ post.thumbnail }}"
@@ -43,45 +42,42 @@
         {{ lazy_images(post.content) | safe }}
     </div>
 
-    
     <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
-        <button class="reaction-btn" data-type="like" type="button">👍 <span class="cnt">{{ (post.stats.reactions.like or 0) if post.stats.reactions else 0 }}</span></button>
-        <button class="reaction-btn" data-type="love" type="button">❤️ <span class="cnt">{{ (post.stats.reactions.love or 0) if post.stats.reactions else 0 }}</span></button>
-        <button class="reaction-btn" data-type="laugh" type="button">😂 <span class="cnt">{{ (post.stats.reactions.laugh or 0) if post.stats.reactions else 0 }}</span></button>
-        <button class="reaction-btn" data-type="fire" type="button">🔥 <span class="cnt">{{ (post.stats.reactions.fire or 0) if post.stats.reactions else 0 }}</span></button>
-        <button class="reaction-btn" data-type="wow" type="button">😮 <span class="cnt">{{ (post.stats.reactions.wow or 0) if post.stats.reactions else 0 }}</span></button>
         <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
     </div>
+    <hr class="hr-default"><br>
+
+    {% if post.comments_on %}
+  <div id="comments" class="comments-container">
+      <div class="comments-section">
+          {% include "partials/comments-section.html" %}
+          
+          {% if comments_total_pages and comments_total_pages > 1 %}
+              <div class="comments-pagination">
+              {% if comments_page > 1 %}
+                  <a href="?cpage={{ comments_page - 1 }}#comments">← Poprzednia</a>
+              {% endif %}
+
+              <span>Strona {{ comments_page }} z {{ comments_total_pages }}</span>
+
+              {% if comments_page < comments_total_pages %}
+                  <a href="?cpage={{ comments_page + 1 }}#comments">Następna →</a>
+              {% endif %}
+              </div>
+          {% endif %}
+      </div>
+
+      <div class="add-comment">
+          {% include "partials/add_comment.html" %}
+      </div>
+  </div>
+{% else %}
+  <p class="comments-disabled">
+    Komentarze dla tego wpisu zostały wyłączone.
+  </p>
+{% endif %}
 
 
-
-
-    <hr class="hr-default">
-    <br>
-
-    <div id="comments" class="comments-container">
-        <div class="comments-section">
-            {% include "partials/comments-section.html" %}
-            
-            {% if comments_total_pages and comments_total_pages > 1 %}
-                <div class="comments-pagination">
-                {% if comments_page > 1 %}
-                    <a href="?cpage={{ comments_page - 1 }}#comments">← Poprzednia</a>
-                {% endif %}
-
-                <span>Strona {{ comments_page }} z {{ comments_total_pages }}</span>
-
-                {% if comments_page < comments_total_pages %}
-                    <a href="?cpage={{ comments_page + 1 }}#comments">Następna →</a>
-                {% endif %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="add-comment">
-            {% include "partials/add_comment.html" %}
-        </div>
-    </div>
 
 {% endblock %}
 

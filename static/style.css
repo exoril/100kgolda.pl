@@ -1,5 +1,3 @@
-
-
 /* =========================
    GLOBAL THEME
    ========================= */
@@ -11,7 +9,7 @@
   --dim-font: #aaaaaa;
 
   --highlight: #f8c10d;
-  --border-color: #aaaaaa85;
+  --border-color: #4d4d4d85;
 
   --line-height-var: 1.4;
   --font-size-global: 16px;
@@ -92,8 +90,8 @@ body{
 a{
   color: var(--highlight);
   text-decoration: none;
-  font-weight: 700;
 }
+
 a:hover{ 
   text-decoration: underline; 
 }
@@ -161,7 +159,7 @@ a.btn,
   gap: var(--btn-gap);
 
   padding: var(--btn-padding-y) var(--btn-padding-x);
-  /* border: var(--border); */
+  border: var(--border);
   border-radius: var(--btn-radius);
   background: transparent;
 
@@ -203,19 +201,20 @@ a.btn:active,
   min-height: 0;
 
   display: grid;
-  grid-template-columns: 160px 1fr 320px;
+  grid-template-columns: 180px 1fr 280px;
   gap: var(--layout-gap);
   align-items: stretch;
 
-  padding: var(--padding-global);
+  background-color: var(--bg-color2);
+  /* padding: var(--padding-global); */
 }
 
 .sidebar,
 .content,
 .widget-bar{
-  border: var(--border);
-  border-radius: var(--border-radius-var);
-  padding: var(--padding-global);
+  /* border: var(--border); */
+  /* border-radius: var(--border-radius-var); */
+  padding: 10px;
   margin: 0;
   overflow: auto;
   overflow-x: hidden;
@@ -224,6 +223,16 @@ a.btn:active,
 .sidebar {
   font-size: 14px;
   font-weight: normal;
+  background-color: var(--bg-color2);
+  border-right: 1px solid var(--border-color)
+}
+
+.widget-bar {
+  border-left: 1px solid var(--border-color)
+}
+
+.content {
+  background-color: var(--bg-color);
 }
 
 .sidebar ul {
@@ -243,7 +252,7 @@ a.btn:active,
 }
 
 .content { 
-  padding: 3rem;
+  padding: 4rem;
   overflow-y: auto; 
 }
 
@@ -391,29 +400,6 @@ a.btn:active,
   box-shadow: var(--focus-ring);
 }
 
-
-/* widget lists */
-.most-viewed-posts-widget,
-.most-commented-posts-widget{
-  font-size: 0.9rem;
-}
-.most-viewed-posts-widget h3,
-.most-commented-posts-widget h3{
-  margin: 0 0 0;
-}
-.most-viewed-posts-widget ol,
-.most-commented-posts-widget ol{
-  margin-top: 6px;
-  margin-left: 0;
-  padding-left: 26px;
-  margin-bottom: 6px;
-}
-
-.most-viewed-posts-widget a,
-.most-commented-posts-widget a{
-  font-weight: normal;
-}
-
 /* =========================
    FOOTER
    ========================= */
@@ -424,7 +410,7 @@ a.btn:active,
   background-color: var(--surface);
   width: 100%;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 12px;
 }
 
 /* =========================
@@ -433,9 +419,10 @@ a.btn:active,
 .post-preview{
   display: flex;
   gap: 16px;
-
-  border: var(--border);
+/* 
+  border: var(--border); */
   border-radius: var(--border-radius-var);
+  background-color: var(--bg-color);
   margin-bottom: 20px;
   max-width: 100%;
   width: max-content;
@@ -524,7 +511,8 @@ a.btn:active,
 .post-content h1,
 .post-content h2,
 .post-content h3{
-  margin: 1em 0 0.5em;
+  margin-top: 16px;
+  margin-bottom: 14px;
 }
 
 .post-content p{
@@ -532,7 +520,11 @@ a.btn:active,
 }
 
 .post-content ul,
-.post-content ol{ margin: 0.5em 0 1em 1.5em; }
+.post-content ol{ 
+  margin: 0.5em 0 1em 1.5em;
+  clear: left;
+}
+
 .post-content li{ margin-bottom: 0.5em; }
 
 .post-content img{
@@ -561,9 +553,10 @@ a.btn:active,
 /* thumbnail inside post */
 .post-inside-thumbnail{
   max-width: 480px;
-  float: right;
+  float: left;
   border-radius: 8px;
-  margin-left: 16px;
+  margin-right: 16px;
+  margin-bottom: 16px;
 }
 
 /* float only for inside-thumbnail, NOT for preview */
@@ -577,7 +570,8 @@ a.btn:active,
   float: right;
 
   margin: 0;
-  margin-left: 20px;
+  margin-left: 16px;
+  margin-bottom: 16px;
   padding:0;
   padding-top: 8px;
   padding-right: 8px;
@@ -794,7 +788,7 @@ a.btn:active,
 }
 
 .add-comment label, .contact-form label{
-  margin-bottom: 5px;
+  margin-bottom: 12px;
 }
 
 .add-comment input,
@@ -858,8 +852,11 @@ a.btn:active,
 }
 
 a.btn.share-link {
+  margin-left: auto;
+  margin-right: auto;
   padding-left: 16px;
   padding-right: 16px;
+  width: 350px;
 }
 
 /* =========================
@@ -1189,8 +1186,8 @@ ul li::before{
 }
 
 .footer p{
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
 
 .divider-coin{
@@ -1229,10 +1226,10 @@ hr.hr-default{
   display: none;
 }
 
-@media (max-width: 980px){
+@media (max-width: 1280px){
   /* pokazuj tylko treść domyślnie */
   .layout{
-    grid-template-columns: 1fr; /* u Ciebie już jest, ale zostawiam dla pewności */
+    grid-template-columns: 1fr;
   }
 
   .mobile-topbar{
@@ -1243,27 +1240,7 @@ hr.hr-default{
     background: var(--bg-color);
   }
 
-  /* żeby topbar nie zasłaniał treści */
-  .layout{
-    padding-top: 0; /* topbar jest poza layoutem */
-  }
-
   /* domyślnie schowane */
-  .sidebar,
-  .widget-bar{
-    display: none;
-  }
-
-  /* backdrop */
-  .drawer-backdrop{
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(2px);
-    z-index: 9000;
-  }
-
-  @media (max-width: 980px){
   .sidebar,
   .widget-bar{
     display: none;
@@ -1297,18 +1274,14 @@ hr.hr-default{
   body.drawer-sidebar .sidebar{
     display: block;
     left: 0;
+    background-color: var(--bg-color2);
   }
 
   body.drawer-widgets .widget-bar{
     display: block;
     right: 0;
+    background-color: var(--bg-color2);
   }
-}
-
-
-  /* który drawer otwarty */
-  body.drawer-sidebar .sidebar{ left: 0; }
-  body.drawer-widgets .widget-bar{ right: 0; }
 
   /* przyciski topbar w Twoim stylu guzików */
   .mobile-topbar__btn{
@@ -1317,7 +1290,42 @@ hr.hr-default{
     color: var(--highlight);
     font-weight: 800;
   }
+
+  /* blokuj scroll strony gdy drawer otwarty */
+  body.drawer-open{
+    overflow: hidden;
+  }
+
+  .post-preview-right p{
+    font-size: 12px;
+  }
 }
+
+/* Desktop: thumbnail ma zawsze stały rozmiar, niezależnie od resize okna */
+@media (min-width: 1281px){
+  .post-preview-left{
+    width: var(--thumb-size);
+    flex: 0 0 var(--thumb-size);
+
+    min-width: var(--thumb-size);
+    max-width: var(--thumb-size);
+  }
+}
+
+
+
+  /* który drawer otwarty */
+  body.drawer-sidebar .sidebar{ left: 0; background-color: var(--bg-color2) }
+  body.drawer-widgets .widget-bar{ right: 0; background-color: var(--bg-color2) }
+
+  /* przyciski topbar w Twoim stylu guzików */
+  .mobile-topbar__btn{
+    width: 100%;
+    justify-content: center;
+    color: var(--highlight);
+    font-weight: 800;
+  }
+
 
 
 @media (max-width: 980px){
@@ -1342,9 +1350,7 @@ hr.hr-default{
 }
 
 .icon {
-  background-color: var(--highlight);
-  border: 1px solid var(--bg-color2);
-  border-radius: 5px;
+  border-radius: 8px;
 }
 
 .sidebar-nav ul{
@@ -1356,6 +1362,8 @@ hr.hr-default{
 
 .sidebar-nav li{
   text-align: left;
+  background-color: var(--bg-color);
+  border-radius: var(--border-radius-var)
 }
 
 .sidebar-nav a{
@@ -1372,3 +1380,74 @@ hr.hr-default{
   height: 24px;
   flex: 0 0 24px;
 }
+
+.widget-bar li{
+  font-size: 14px;
+}
+
+.widget-bar ol {
+  padding-left: 20px;
+}
+
+.categories-list-widget label{
+  font-weight: bold;
+}
+
+.total-posts-widget p {
+  font-size: 18px;
+}
+
+.widget-bar div {
+  background-color: var(--bg-color);
+}
+
+.mobile-topbar {
+  background-color: var(--bg-color2);
+  height: 80px;
+}
+.comments-disabled{
+  margin-top: 18px;
+  padding: 12px 14px;
+  color: var(--dim-font);
+}
+
+.loading-overlay[hidden]{ display:none; }
+
+.loading-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 40000;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+}
+
+.loading-box{
+  border: var(--border);
+  border-radius: var(--border-radius-var);
+  background: var(--surface);
+  padding: 16px 18px;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+.loading-text{
+  font-weight: 700;
+  color: var(--font-color);
+  opacity: 0.95;
+}
+
+.spinner{
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(250,218,63,0.25);
+  border-top-color: var(--highlight);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

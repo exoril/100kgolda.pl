@@ -17,6 +17,7 @@ function showNotice(msg, ms = 2000, type = "info") {
 }
 
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const shareLinks = document.querySelectorAll('.share-link');
     
@@ -177,14 +178,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const url = new URL(window.location.href);
+  let changed = false;
+
+  // ✅ kontakt: wiadomość wysłana
+  if (url.searchParams.get("sent") === "1") {
+    showNotice("Wiadomość wysłana. Dzięki!", 2200, "info");
+    url.searchParams.delete("sent");
+    changed = true;
+  }
+
+  // ❌ captcha
   if (url.searchParams.get("captcha") === "1") {
     showNotice("Błąd captcha. Spróbuj ponownie.", 2500, "error");
-
-    // usuń parametr, żeby po F5 nie pokazywało znowu
     url.searchParams.delete("captcha");
-    window.history.replaceState({}, "", url.toString());
+    changed = true;
+  }
+
+  // ⏳ cooldown
+  const cd = url.searchParams.get("cooldown"); // string albo null
+  if (cd !== null) {
+    const seconds = parseInt(cd, 10);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      showNotice(`Za szybko. Spróbuj ponownie za ${seconds}s.`, 3500, "error");
+    }
+    url.searchParams.delete("cooldown");
+    changed = true;
+  }
+
+  // usuń parametry, żeby po F5 nie pokazywało znowu
+  if (changed) {
+    const clean =
+      url.pathname +
+      (url.searchParams.toString() ? "?" + url.searchParams.toString() : "") +
+      (url.hash || "");
+    window.history.replaceState({}, "", clean);
   }
 });
+
+
 
  const ta = document.getElementById("contact-message");
   const left = document.getElementById("chars-left");
@@ -245,3 +276,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const mq = window.matchMedia('(max-width: 980px)');
   mq.addEventListener?.('change', (e) => { if (!e.matches) closeDrawer(); });
 })();
+
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("loading-overlay");
+  if (!overlay) return;
+
+  function showLoading() {
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open"); // opcjonalnie blokuje scroll jeśli używasz
+  }
+
+  // Kontakt
+  const contactForm = document.querySelector('form[action^="/kontakt"]');
+  if (contactForm) {
+    contactForm.addEventListener("submit", () => {
+      showLoading();
+    });
+  }
+
+  // Komentarze (jeśli chcesz też tutaj)
+  const commentForm = document.querySelector('form[action*="/comment"]');
+  if (commentForm) {
+    commentForm.addEventListener("submit", () => {
+      showLoading();
+    });
+  }
+});
