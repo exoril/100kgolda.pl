@@ -7,6 +7,7 @@ dodac cachowanie albo cos w ten desen zeby strona szybciej sie ladowala (teraz j
 zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
 zmodyfikowac content kazdej wiadomosci z uzyciem <hr> przed kazdym naglowkiem h2
 dodać pole "sources" do kolekcji posts i wyświetlać je na końcu posta jako listę linków
+przejrzeć plik main.py, usunąć niepotrzebne rzeczy, może podzielić plik na kilka mniejszych, np. main.py, admin.py, utils.py itd
 
 3. dodać linki do stron społecznościowych w sidebarze/stopce oraz stronie kontakt
 4. zrobić prosty panel admina, na razie tylko z metrics, później można dodać coś jeszcze

@@ -26,6 +26,9 @@ import httpx
 import uuid
 import re
 import unicodedata
+import smtplib
+from email.message import EmailMessage
+
 
 app = FastAPI()
 
@@ -35,6 +38,32 @@ app.state.templates = templates
 templates.env.filters["urlencode"] = lambda s: quote_plus(str(s))
 
 router = APIRouter()
+
+import secrets
+from fastapi import Request
+
+VISITOR_COOKIE_NAME = "visitor_id"
+VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 rok
+
+@app.middleware("http")
+async def ensure_visitor_id_cookie(request: Request, call_next):
+    response = await call_next(request)
+
+    # jeśli już jest, nic nie rób
+    if request.cookies.get(VISITOR_COOKIE_NAME):
+        return response
+
+    # ustaw cookie tylko gdy response jeszcze nie ma Set-Cookie dla visitor_id
+    # (zabezpiecza przed podwójnym ustawieniem w np. add_comment)
+    new_vid = secrets.token_hex(16)
+    response.set_cookie(
+        VISITOR_COOKIE_NAME,
+        new_vid,
+        max_age=VISITOR_COOKIE_MAX_AGE,
+        samesite="lax",
+        httponly=True,
+    )
+    return response
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -287,6 +316,14 @@ async def pb_get(path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str
         r = await client.get(url, params=params or {})
         r.raise_for_status()
         return r.json()
+
+async def pb_patch(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    url = PB_URL.rstrip("/") + path
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.patch(url, json=payload)
+        r.raise_for_status()
+        return r.json()
+
 
 
 def normalize_post(raw: Dict[str, Any]) -> Dict[str, Any]:
@@ -801,6 +838,14 @@ async def post_detail(
 ):
     post = await get_post_by_slug(slug)
 
+    visitor_id = request.cookies.get("visitor_id")
+    if visitor_id:
+        now_ts = _now_utc_ts()
+        if should_count_view(visitor_id, post["id"], now_ts):
+            mark_view_pending(post["id"])
+            print(f"[VIEW] +1 (RAM only) post_id={post['id']} slug={slug} visitor_id={visitor_id[:6]}…")
+
+
     comments, cmeta = await get_comments_for_post(post["id"], page=cpage, per_page=10)
 
     prefill_author = request.cookies.get("comment_author", "")
@@ -820,79 +865,6 @@ async def post_detail(
         recaptcha_site_key=RECAPTCHA_SITE_KEY,
         context_name="post",
     )
-
-
-@router.post("/post/{slug}/comment")
-async def add_comment(
-    request: Request,
-    slug: str,
-    author: str = Form(...),
-    content: str = Form(...),
-    email: str = Form(""),
-    terms_accepted: str = Form(None),
-    recaptcha_response: str = Form(None, alias="g-recaptcha-response"),  # ✅
-):
-    post = await get_post_by_slug(slug)
-    if not post.get("comments_on", True):
-        raise HTTPException(status_code=404)
-
-    author = (author or "").strip()
-    email = (email or "").strip()
-    content = (content or "").strip()
-
-    if not author or len(author) > 20:
-        raise HTTPException(status_code=400, detail="Nieprawidłowe imię")
-    if len(email) > 30:
-        raise HTTPException(status_code=400, detail="Nieprawidłowy email")
-    if not content or len(content) > 200:
-        raise HTTPException(status_code=400, detail="Nieprawidłowa treść komentarza")
-    if terms_accepted is None:
-        raise HTTPException(status_code=400, detail="Musisz zaakceptować warunki")
-
-    # ✅ CAPTCHA (toast zrobi scripts.js)
-    ok = await verify_recaptcha(
-        token=recaptcha_response or "",
-        remoteip=request.client.host if request.client else None,
-    )
-    if not ok:
-        return RedirectResponse(url=f"/post/{slug}?captcha=1#comments", status_code=303)
-
-    visitor_id = request.cookies.get("visitor_id")
-    if not visitor_id:
-        visitor_id = secrets.token_hex(16)
-
-    # ✅ cooldown tylko gdy za szybko
-    last_dt = await get_last_comment_utc_for_post(visitor_id, post["id"])
-    if last_dt:
-        now_utc = datetime.now(timezone.utc)
-        elapsed = (now_utc - last_dt).total_seconds()
-        remaining = int(COMMENT_COOLDOWN_SECONDS - elapsed)
-        if remaining > 0:
-            resp = RedirectResponse(url=f"/post/{slug}?cooldown={remaining}#comments", status_code=303)
-            if "visitor_id" not in request.cookies:
-                resp.set_cookie("visitor_id", visitor_id, max_age=60 * 60 * 24 * 365, samesite="lax")
-            return resp
-
-    await pb_post(
-        "/api/collections/comments/records",
-        payload={
-            "post": post["id"],
-            "visitor_id": visitor_id,
-            "author": author,
-            "email": email,
-            "content": content,
-            "approved": True,
-        },
-    )
-
-    global _COMMENT_COUNT_CACHE
-    _COMMENT_COUNT_CACHE = None
-
-    # ✅ sukces: tylko sent=1 (bez cooldown)
-    resp = RedirectResponse(url=f"/post/{slug}?sent=1#comments", status_code=303)
-    if "visitor_id" not in request.cookies:
-        resp.set_cookie("visitor_id", visitor_id, max_age=60 * 60 * 24 * 365, samesite="lax")
-    return resp
 
 
 from fastapi import HTTPException
@@ -1013,7 +985,79 @@ def send_contact_email_sync(name: str, email: str, subject: str, message: str, v
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as s:
         s.login(SMTP_USER, SMTP_PASS)
         s.send_message(msg)
+
 CONTACT_COOLDOWN_SECONDS = 600  # 10 minut
+
+from typing import Dict, Tuple
+
+VIEW_COOLDOWN_SECONDS = 60 * 60 * 24  # 24 godziny
+
+# (visitor_id, post_id) -> last_counted_ts
+_VIEW_SEEN: Dict[Tuple[str, str], int] = {}
+# post_id -> liczba nowych viewów do zapisania
+_VIEW_PENDING: Dict[str, int] = {}
+
+def mark_view_pending(post_id: str) -> None:
+    _VIEW_PENDING[post_id] = int(_VIEW_PENDING.get(post_id, 0)) + 1
+
+
+def should_count_view(visitor_id: str, post_id: str, now_ts: int) -> bool:
+    """
+    Zwraca True tylko jeśli dla (visitor_id, post_id) minęło 24h od ostatniego naliczenia.
+    """
+    key = (visitor_id, post_id)
+    last = _VIEW_SEEN.get(key)
+    if last is None:
+        _VIEW_SEEN[key] = now_ts
+        return True
+
+    if now_ts - last >= VIEW_COOLDOWN_SECONDS:
+        _VIEW_SEEN[key] = now_ts
+        return True
+
+    return False
+
+import asyncio
+
+VIEW_FLUSH_INTERVAL_SECONDS = 300  # 5 minut
+
+async def flush_pending_views() -> None:
+    """
+    Zapisuje _VIEW_PENDING do PocketBase (inkrementacja posts.views).
+    Jeśli zapis się nie uda, wraca do pending.
+    """
+    global _VIEW_PENDING
+
+    if not _VIEW_PENDING:
+        return
+
+    # snapshot + natychmiastowe wyczyszczenie (żeby w trakcie flushu nowe viewy wpadały do świeżego dict)
+    snapshot = _VIEW_PENDING
+    _VIEW_PENDING = {}
+
+    failed: Dict[str, int] = {}
+
+    for post_id, inc in snapshot.items():
+        if not inc:
+            continue
+        try:
+            # UWAGA: to jest "na sztywno" ustawienie wartości, więc musimy znać aktualne views.
+            # Najprościej: pobierz aktualne views i dopiero ustaw views=old+inc.
+            post = await pb_get(f"/api/collections/posts/records/{post_id}", params={"fields": "views"})
+            current = int(post.get("views") or 0)
+            new_val = current + int(inc)
+
+            await pb_patch(f"/api/collections/posts/records/{post_id}", {"views": new_val})
+            print(f"[VIEW FLUSH] post_id={post_id} +{inc} -> {new_val}")
+
+        except Exception as e:
+            print(f"[VIEW FLUSH ERROR] post_id={post_id} +{inc} err={repr(e)}")
+            failed[post_id] = failed.get(post_id, 0) + int(inc)
+
+    # jeśli coś padło, wrzuć z powrotem do pending
+    if failed:
+        for post_id, inc in failed.items():
+            _VIEW_PENDING[post_id] = int(_VIEW_PENDING.get(post_id, 0)) + int(inc)
 
 
 def _now_utc_ts() -> int:
@@ -1111,6 +1155,32 @@ async def add_comment(
     if "visitor_id" not in request.cookies:
         resp.set_cookie("visitor_id", visitor_id, max_age=60 * 60 * 24 * 365, samesite="lax")
     return resp
+
+@router.get("/_debug/views")
+async def debug_views():
+    # Uwaga: tylko do lokalnych testów / wyłącz na produkcji
+    return {
+        "pending": _VIEW_PENDING,
+        "seen_size": len(_VIEW_SEEN),
+    }
+
+@router.post("/_debug/views/flush")
+async def debug_flush_views():
+    await flush_pending_views()
+    return {"ok": True, "pending": _VIEW_PENDING}
+
+@app.on_event("startup")
+async def start_view_flush_loop():
+    async def loop():
+        while True:
+            try:
+                await flush_pending_views()
+            except Exception as e:
+                print("[VIEW FLUSH LOOP ERROR]", repr(e))
+            await asyncio.sleep(VIEW_FLUSH_INTERVAL_SECONDS)
+
+    asyncio.create_task(loop())
+
 
 
 app.include_router(router)
