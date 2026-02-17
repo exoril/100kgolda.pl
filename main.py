@@ -38,8 +38,32 @@ import os
 import time
 from email.message import EmailMessage
 
+# --- HTTP client reuse (one AsyncClient per process) ---
+_HTTP_CLIENT: httpx.AsyncClient | None = None
+
+async def get_http_client() -> httpx.AsyncClient:
+    global _HTTP_CLIENT
+    if _HTTP_CLIENT is None:
+        _HTTP_CLIENT = httpx.AsyncClient(timeout=15)
+    return _HTTP_CLIENT
+
+async def close_http_client() -> None:
+    global _HTTP_CLIENT
+    if _HTTP_CLIENT is not None:
+        await _HTTP_CLIENT.aclose()
+        _HTTP_CLIENT = None
+
 
 app = FastAPI()
+
+@app.on_event("startup")
+async def startup_http_client() -> None:
+    await get_http_client()
+
+@app.on_event("shutdown")
+async def shutdown_http_client() -> None:
+    await close_http_client()
+
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -50,6 +74,9 @@ router = APIRouter()
 
 import secrets
 from fastapi import Request
+
+
+
 
 _SERVICE_TOKEN: str | None = None
 _SERVICE_TOKEN_TS: float = 0.0
@@ -354,19 +381,19 @@ async def pb_get(path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str
     url = PB_URL.rstrip("/") + path
     token = await get_service_token()
     headers = {"Authorization": f"Bearer {token}"}
-    async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.get(url, params=params or {}, headers=headers)
-        r.raise_for_status()
-        return r.json()
+    client = await get_http_client()
+    r = await client.get(url, params=params or {}, headers=headers)
+    r.raise_for_status()
+    return r.json()
 
 async def pb_patch(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
     token = await get_service_token()
     headers = {"Authorization": f"Bearer {token}"}
-    async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.patch(url, json=payload, headers=headers)
-        r.raise_for_status()
-        return r.json()
+    client = await get_http_client()
+    r = await client.patch(url, json=payload, headers=headers)
+    r.raise_for_status()
+    return r.json()
 
 
 
@@ -847,17 +874,17 @@ async def pb_post(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
     token = await get_service_token()
     headers = {"Authorization": f"Bearer {token}"}
-    async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.post(url, json=payload, headers=headers)
-        r.raise_for_status()
-        return r.json()
+    client = await get_http_client()
+    r = await client.post(url, json=payload, headers=headers)
+    r.raise_for_status()
+    return r.json()
 
 async def pb_post_noauth(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
-    async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.post(url, json=payload)
-        r.raise_for_status()
-        return r.json()
+    client = await get_http_client()
+    r = await client.post(url, json=payload)
+    r.raise_for_status()
+    return r.json()
 
 
 async def get_comments_for_post(post_id: str, page: int, per_page: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:

@@ -1,19 +1,13 @@
 MVP:
-naprawic prefill w formualrzu kontaktu i komentarza po nieudanej wysyłce
-zaimplementowac zliczanie wyswietlen
-przejrzeć ponownie api rules w pb
 dodac cachowanie albo cos w ten desen zeby strona szybciej sie ladowala (teraz jest tragedia)
 zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
 zmodyfikowac content kazdej wiadomosci z uzyciem <hr> przed kazdym naglowkiem h2
-dodać pole "sources" do kolekcji posts i wyświetlać je na końcu posta jako listę linków
+
 przejrzeć plik main.py, usunąć niepotrzebne rzeczy, może podzielić plik na kilka mniejszych, np. main.py, admin.py, utils.py itd
 
 3. dodać linki do stron społecznościowych w sidebarze/stopce oraz stronie kontakt
-4. zrobić prosty panel admina, na razie tylko z metrics, później można dodać coś jeszcze
 9. dodać meta_description do każdego posta w kolekcji posts PB
-10. zmienić w configu widoczność hasła i tokenów captcha (teraz są plain text - niedobrze) na zmienną środowiskową
 zapytać chatgpt o komunikaty w konsoli przeglądarki i co można z nimi zrobić
-zrobić coś z prawidłowym wyświetlaniem dodatkowyc img wewnątrz treści postów
 skonsultować z chatgpt bezpieczeństwo dodawania komentarzy (m.in. wklejanie kodu lub inne takie)
 pousuwać komentarze z wszystkich plików
 ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
@@ -59,3 +53,4 @@ a. zrobić listę zaimplementowanych funkcjonalności so-far, w stronie o-blogu 
 27. dodać do kolekcji posts pole "sources" i wyświetlać je na końcu posta jako listę linków
 28. zmienić wysyłkę formularza z formularz@100kgolda.pl na marcin@100kgolda.pl, żeby oszczędzić skrzynki pocztowe oraz ułatwić zarządzanie i korzystanie z maila kontaktowego i skrzynki pocztowej (1 do sprawdzania zamiast 2)
 29. przerobic widgety na "najczęściej wyswietlane/komentowane" w tym miesiacu, a nie w ogóle
+30. dodać pole "sources" do kolekcji posts i wyświetlać je na końcu posta jako listę linków
