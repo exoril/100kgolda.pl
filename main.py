@@ -507,6 +507,60 @@ async def attach_series_data(raw_post: Dict[str, Any]) -> None:
 
     raw_post["_series"] = await get_series_by_id(str(sid))
 
+# --- simple in-memory TTL cache for sidebar widgets ---
+_PUBLIC_CACHE: dict[str, tuple[float, Any]] = {}
+
+def _cache_get(key: str, ttl: int) -> Any | None:
+    now = time.time()
+    hit = _PUBLIC_CACHE.get(key)
+    if not hit:
+        return None
+    ts, val = hit
+    if (now - ts) < ttl:
+        return val
+    return None
+
+def _cache_set(key: str, val: Any) -> Any:
+    _PUBLIC_CACHE[key] = (time.time(), val)
+    return val
+
+def _cache_invalidate(prefix: str) -> None:
+    # usuwa wszystkie klucze zaczynające się od prefix
+    for k in list(_PUBLIC_CACHE.keys()):
+        if k.startswith(prefix):
+            _PUBLIC_CACHE.pop(k, None)
+
+async def get_public_widgets_cached() -> Dict[str, Any]:
+    # TTL-e (sekundy) – dobrane pod bloga
+    TTL_CATEGORIES = 60 * 30      # 30 min
+    TTL_TOP_POSTS = 60 * 2        # 2 min
+    TTL_TOP_COMMENTED = 60 * 2    # 2 min
+    TTL_POST_COUNT = 60 * 5       # 5 min
+
+    categories = _cache_get("public:categories", TTL_CATEGORIES)
+    if categories is None:
+        categories = _cache_set("public:categories", await get_categories())
+
+    top_posts = _cache_get("public:top_posts", TTL_TOP_POSTS)
+    if top_posts is None:
+        top_posts = _cache_set("public:top_posts", await get_top_posts(limit=5))
+
+    top_commented = _cache_get("public:top_commented", TTL_TOP_COMMENTED)
+    if top_commented is None:
+        top_commented = _cache_set("public:top_commented", await get_top_commented(limit=5))
+
+    post_count = _cache_get("public:post_count", TTL_POST_COUNT)
+    if post_count is None:
+        post_count = _cache_set("public:post_count", await get_post_count())
+
+    return {
+        "categories": categories,
+        "top_posts": top_posts,
+        "top_commented": top_commented,
+        "post_count": post_count,
+    }
+
+
 
 import time
 from typing import Optional, Dict
@@ -712,14 +766,13 @@ async def get_posts_by_category(category: str, page: int, per_page: int) -> Tupl
 
 
 async def public_context(request: Request) -> Dict[str, Any]:
+    widgets = await get_public_widgets_cached()
     return {
         "query": request.query_params.get("q"),
         "selected_category": request.query_params.get("category"),
-        "categories": await get_categories(),
-        "top_posts": await get_top_posts(limit=5),
-        "top_commented": await get_top_commented(limit=5),
-        "post_count": await get_post_count(),
+        **widgets,
     }
+
 
 
 async def render_template(request: Request, name: str, **ctx: Any) -> HTMLResponse:
@@ -1311,6 +1364,8 @@ async def add_comment(
 
     global _COMMENT_COUNT_CACHE
     _COMMENT_COUNT_CACHE = None
+    _cache_invalidate("public:")
+
 
     resp = RedirectResponse(url=f"/post/{slug}?sent=1#comments", status_code=303)
     if "visitor_id" not in request.cookies:
