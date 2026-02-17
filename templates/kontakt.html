@@ -10,16 +10,16 @@
     <div class="contact-form">
         <form action="/kontakt#kontakt" method="post">
             <label for="name">Imię:<span style="color:red">*</span></label>
-            <input type="text" name="name" id="name" required maxlength="40" value="{{ prefill_name or '' }}">
+            <input type="text" name="name" id="name" required maxlength="40" value="{{ prefill_name or '' }}" autocomplete="off">
             <label for="email">E-mail:<span style="color:red">*</span></label>
-            <input type="email" name="email" id="email" required maxlength="80" value="{{ prefill_email or '' }}">
+            <input type="email" name="email" id="email" required maxlength="80" value="{{ prefill_email or '' }}" autocomplete="off">
             <label for="subject">Temat:<span style="color:red">*</span></label>
-            <input type="text" name="subject" id="subject" required maxlength="120" value="{{ prefill_subject or '' }}">
+            <input type="text" name="subject" id="subject" required maxlength="120" value="{{ prefill_subject or '' }}" autocomplete="off">
             <label for="message">
                 Wiadomość:<span style="color:red">*</span>
                 <span class="chars-container">(pozostało <span id="chars-left">1000</span> znaków)</span>
             </label>
-            <textarea name="message" id="contact-message" rows="8" required maxlength="1000">{{ prefill_message or '' }}</textarea>
+            <textarea name="message" id="contact-message" rows="8" required maxlength="1000" autocomplete="off">{{ prefill_message or '' }}</textarea>
             <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
             <label class="terms">
             <input type="checkbox" name="terms_accepted" id="terms_accepted" required>

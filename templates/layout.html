@@ -134,7 +134,7 @@
       <aside id="drawer-widgets" class="widget-bar" aria-label="Widżety">
         <div class="searchbox-widget">
           <form action="/szukaj" method="get">
-            <input type="text" name="q" value="{{ query or '' }}" placeholder="Szukaj..."/>
+            <input type="text" name="q" value="{{ query_input }}" placeholder="Szukaj..." autocomplete="off"/>
           </form>
         </div>
 

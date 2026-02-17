@@ -12,6 +12,7 @@ from html import unescape
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
+from urllib.parse import urlencode
 
 from app.config import (
     PB_URL,
@@ -900,8 +901,10 @@ async def post_detail(
 
     comments, cmeta = await get_comments_for_post(post["id"], page=cpage, per_page=10)
 
-    prefill_author = request.cookies.get("comment_author", "")
-    prefill_email = request.cookies.get("comment_email", "")
+    qp = request.query_params
+    prefill_author = (qp.get("ca") or request.cookies.get("comment_author", "")).strip()
+    prefill_email = (qp.get("ce") or request.cookies.get("comment_email", "")).strip()
+    prefill_content = (qp.get("cc") or "").strip()
 
     return await render_template(
         request,
@@ -914,6 +917,7 @@ async def post_detail(
         active_reaction=None,
         prefill_author=prefill_author,
         prefill_email=prefill_email,
+        prefill_content=prefill_content,
         recaptcha_site_key=RECAPTCHA_SITE_KEY,
         context_name="post",
     )
@@ -938,7 +942,8 @@ async def search_view(
         return await render_template(
             request,
             "szukaj.html",
-            query="",
+            query="",              # do tekstu "wyniki dla"
+            query_input="",        # do value w input
             posts=[],
             page=1,
             total_pages=1,
@@ -958,7 +963,8 @@ async def search_view(
     return await render_template(
         request,
         "szukaj.html",
-        query=query,
+        query=query,            # do wyświetlenia na stronie
+        query_input="",         # input zawsze pusty
         posts=posts,
         pagination=pagination,
         pagination_html=pagination_html,
@@ -1128,13 +1134,24 @@ def _parse_int(s: str | None) -> int | None:
 
 @router.get("/kontakt", response_class=HTMLResponse)
 async def kontakt(request: Request):
-    # ✅ brak sent/error w HTML — toast obsłuży JS po query paramach
+    qp = request.query_params
+
+    prefill_name = (qp.get("cn") or "").strip()
+    prefill_email = (qp.get("ce") or "").strip()
+    prefill_subject = (qp.get("cs") or "").strip()
+    prefill_message = (qp.get("cm") or "").strip()
+
     return await render_template(
         request,
         "kontakt.html",
         context_name="kontakt",
         recaptcha_site_key=RECAPTCHA_SITE_KEY,
+        prefill_name=prefill_name,
+        prefill_email=prefill_email,
+        prefill_subject=prefill_subject,
+        prefill_message=prefill_message,
     )
+
 
 @router.post("/kontakt")
 async def kontakt_submit(
@@ -1145,6 +1162,18 @@ async def kontakt_submit(
     message: str = Form(...),
     recaptcha_response: str = Form(None, alias="g-recaptcha-response"),
 ):
+    def _prefill_redirect(error_code: str) -> RedirectResponse:
+        qs = urlencode(
+            {
+                "error": error_code,
+                "cn": (name or "")[:40],
+                "ce": (email or "")[:80],
+                "cs": (subject or "")[:120],
+                "cm": (message or "")[:1000],
+            }
+        )
+        return RedirectResponse(url=f"/kontakt?{qs}#kontakt", status_code=303)
+
     # VID z middleware cookie
     vid = request.cookies.get("visitor_id")
     now = _now_utc_ts()
@@ -1153,12 +1182,15 @@ async def kontakt_submit(
     if vid:
         last = _CONTACT_LAST.get(vid)
         if last is not None and (now - last) < CONTACT_COOLDOWN_SECONDS:
-            return RedirectResponse(url="/kontakt?error=cooldown", status_code=303)
+            return _prefill_redirect("cooldown")
 
     # reCAPTCHA
-    ok = await verify_recaptcha(recaptcha_response, remoteip=request.client.host if request.client else None)
+    ok = await verify_recaptcha(
+        recaptcha_response,
+        remoteip=request.client.host if request.client else None,
+    )
     if not ok:
-        return RedirectResponse(url="/kontakt?error=recaptcha", status_code=303)
+        return _prefill_redirect("recaptcha")
 
     # wysyłka maila (SMTP jest sync, więc do wątku)
     try:
@@ -1166,13 +1198,12 @@ async def kontakt_submit(
         await asyncio.to_thread(send_contact_email_sync, name, email, subject, message, vid)
     except Exception as e:
         print("[CONTACT ERROR]", repr(e))
-        return RedirectResponse(url="/kontakt?error=send", status_code=303)
+        return _prefill_redirect("send")
 
     if vid:
         _CONTACT_LAST[vid] = now
 
-    return RedirectResponse(url="/kontakt?sent=1", status_code=303)
-
+    return RedirectResponse(url="/kontakt?sent=1#kontakt", status_code=303)
 
 
 @router.post("/post/{slug}/comment")
@@ -1183,7 +1214,7 @@ async def add_comment(
     content: str = Form(...),
     email: str = Form(""),
     terms_accepted: str = Form(None),
-    recaptcha_response: str = Form(None, alias="g-recaptcha-response"),  # <-- DODAJ TO
+    recaptcha_response: str = Form(None, alias="g-recaptcha-response"),
 ):
     post = await get_post_by_slug(slug)
     if not post.get("comments_on", True):
@@ -1202,29 +1233,39 @@ async def add_comment(
     if terms_accepted is None:
         raise HTTPException(status_code=400, detail="Musisz zaakceptować warunki")
 
-    # ✅ CAPTCHA: jeśli niezaznaczona albo nie przeszła, pokaż toast przez scripts.js
+    # helper do redirectów z prefill
+    def _prefill_redirect(error_code: str, extra: dict | None = None) -> RedirectResponse:
+        params = {
+            "error": error_code,
+            "ca": author[:20],
+            "ce": email[:30],
+            "cc": content[:200],
+        }
+        if extra:
+            params.update(extra)
+        qs = urlencode(params)
+        return RedirectResponse(url=f"/post/{slug}?{qs}#comments", status_code=303)
+
+    # ✅ CAPTCHA
     ok = await verify_recaptcha(
         token=recaptcha_response or "",
         remoteip=request.client.host if request.client else None,
     )
     if not ok:
-        return RedirectResponse(url=f"/post/{slug}?captcha=1#comments", status_code=303)
+        return _prefill_redirect("recaptcha")
 
     visitor_id = request.cookies.get("visitor_id")
     if not visitor_id:
         visitor_id = secrets.token_hex(16)
 
-    # ✅ cooldown tylko przy próbie "za szybko"
+    # ✅ cooldown
     last_dt = await get_last_comment_utc_for_post(visitor_id, post["id"])
     if last_dt:
         now_utc = datetime.now(timezone.utc)
         elapsed = (now_utc - last_dt).total_seconds()
         remaining = int(COMMENT_COOLDOWN_SECONDS - elapsed)
         if remaining > 0:
-            resp = RedirectResponse(
-                url=f"/post/{slug}?cooldown={remaining}#comments",
-                status_code=303,
-            )
+            resp = _prefill_redirect("cooldown", {"t": str(remaining)})
             if "visitor_id" not in request.cookies:
                 resp.set_cookie("visitor_id", visitor_id, max_age=60 * 60 * 24 * 365, samesite="lax")
             return resp
@@ -1249,13 +1290,13 @@ async def add_comment(
         resp.set_cookie("visitor_id", visitor_id, max_age=60 * 60 * 24 * 365, samesite="lax")
     return resp
 
-@router.get("/_debug/views")
-async def debug_views():
-    # Uwaga: tylko do lokalnych testów / wyłącz na produkcji
-    return {
-        "pending": _VIEW_PENDING,
-        "seen_size": len(_VIEW_SEEN),
-    }
+# @router.get("/_debug/views")
+# async def debug_views():
+#     # Uwaga: tylko do lokalnych testów / wyłącz na produkcji
+#     return {
+#         "pending": _VIEW_PENDING,
+#         "seen_size": len(_VIEW_SEEN),
+#     }
 
 @app.on_event("startup")
 async def start_view_flush_loop():

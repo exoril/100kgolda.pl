@@ -1,6 +1,4 @@
 MVP:
-zabezpieczyc zmienne srodowiskowe z config
-wywalic autouzupelnianie formularza kontakt, komentarza, szukajki
 naprawic prefill w formualrzu kontaktu i komentarza po nieudanej wysyłce
 zaimplementowac zliczanie wyswietlen
 przejrzeć ponownie api rules w pb
@@ -20,6 +18,7 @@ skonsultować z chatgpt bezpieczeństwo dodawania komentarzy (m.in. wklejanie ko
 pousuwać komentarze z wszystkich plików
 ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
 przetestować działania modali i toastów w responsywnych stanach strony
+zaktualizować politykę i warunki z datą deployu
 
 
 TYLE - hostować, po zahostowaniu:

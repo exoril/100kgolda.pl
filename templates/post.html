@@ -112,13 +112,13 @@
             <h3>Dodaj komentarz</h3>
     <form action="/post/{{ post.slug }}/comment#comments" method="post">
         <label for="author">Imię:<span style="color:red">*</span></label>
-        <input type="text" name="author" id="author" required maxlength="20" value="{{ prefill_author or '' }}">
+        <input type="text" name="author" id="author" required maxlength="20" value="{{ prefill_author or '' }}" autocomplete="off">
 
         <label for="email">E-mail</label>
-        <input type="email" name="email" id="email" maxlength="30" value="{{ prefill_email or ''}}">
+        <input type="email" name="email" id="email" maxlength="30" value="{{ prefill_email or ''}}" autocomplete="off">
 
         <label for="content">Komentarz:<span style="color:red">*</span> <span class="chars-container">(pozostało <span id="chars-left">200</span> znaków)</span></label>
-        <textarea name="content" id="comment-content" rows="6" required maxlength="200"></textarea>
+        <textarea name="content" id="comment-content" rows="6" required maxlength="200" autocomplete="off">{{ prefill_content or '' }}</textarea>
 
         <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
 

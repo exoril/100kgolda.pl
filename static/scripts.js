@@ -180,22 +180,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const url = new URL(window.location.href);
   let changed = false;
 
-  // ✅ kontakt: wiadomość wysłana
+  // ✅ kontakt / komentarze: wysłane
   if (url.searchParams.get("sent") === "1") {
     showNotice("Wiadomość wysłana. Dzięki!", 2200, "info");
     url.searchParams.delete("sent");
     changed = true;
   }
 
-  // ❌ captcha
+  // ❌ komentarze: captcha=1
   if (url.searchParams.get("captcha") === "1") {
     showNotice("Błąd captcha. Spróbuj ponownie.", 2500, "error");
     url.searchParams.delete("captcha");
     changed = true;
   }
 
-  // ⏳ cooldown
-  const cd = url.searchParams.get("cooldown"); // string albo null
+  // ✅ kontakt: error=...
+  const err = url.searchParams.get("error");
+  if (err) {
+    if (err === "recaptcha") {
+      showNotice("Błąd captcha. Spróbuj ponownie.", 2500, "error");
+    } else if (err === "cooldown") {
+      showNotice("Za szybko. Spróbuj ponownie za kilka minut.", 3500, "error");
+    } else if (err === "send") {
+      showNotice("Nie udało się wysłać wiadomości. Spróbuj ponownie.", 3500, "error");
+    }
+    url.searchParams.delete("error");
+    changed = true;
+
+    // usuń też prefill z URL (żeby nie wisiała treść wiadomości w pasku)
+    ["cn", "ce", "cs", "cm"].forEach((k) => {
+      if (url.searchParams.has(k)) {
+        url.searchParams.delete(k);
+        changed = true;
+      }
+    });
+  }
+
+  // ⏳ komentarze: cooldown=sekundy
+  const cd = url.searchParams.get("cooldown");
   if (cd !== null) {
     const seconds = parseInt(cd, 10);
     if (Number.isFinite(seconds) && seconds > 0) {
@@ -214,7 +236,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.history.replaceState({}, "", clean);
   }
 });
-
 
 
  const ta = document.getElementById("contact-message");
