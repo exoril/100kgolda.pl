@@ -14,12 +14,15 @@ from app.config import (
     PB_URL,
     RECAPTCHA_SITE_KEY,
     RECAPTCHA_SECRET_KEY,
+    SERVICE_COLLECTION,
     SMTP_HOST,
     SMTP_PORT,
     SMTP_USER,
     SMTP_PASS,
     CONTACT_TO,
     CONTACT_FROM,
+    PB_SERVICE_EMAIL,
+    PB_SERVICE_PASSWORD,
 )
 import secrets
 import httpx
@@ -27,6 +30,8 @@ import uuid
 import re
 import unicodedata
 import smtplib
+import os
+import time
 from email.message import EmailMessage
 
 
@@ -41,6 +46,10 @@ router = APIRouter()
 
 import secrets
 from fastapi import Request
+
+_SERVICE_TOKEN: str | None = None
+_SERVICE_TOKEN_TS: float = 0.0
+_SERVICE_TOKEN_TTL = 60 * 30  # 30 min (prosto; potem można lepiej)
 
 VISITOR_COOKIE_NAME = "visitor_id"
 VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 rok
@@ -90,6 +99,33 @@ async def internal_error_handler(request: Request, exc: Exception):
         {"request": request, **base, "error_id": error_id, "context_name": "500"},
         status_code=500,
     )
+
+async def pb_login_service() -> str:
+    if not PB_SERVICE_EMAIL or not PB_SERVICE_PASSWORD:
+        raise RuntimeError("Missing PB_SERVICE_EMAIL / PB_SERVICE_PASSWORD")
+
+    data = await pb_post_noauth(
+        f"/api/collections/{SERVICE_COLLECTION}/auth-with-password",
+        {"identity": PB_SERVICE_EMAIL, "password": PB_SERVICE_PASSWORD},
+    )
+
+    token = data.get("token")
+    if not token:
+        raise RuntimeError("PocketBase login did not return token")
+    return token
+
+
+async def get_service_token() -> str:
+    global _SERVICE_TOKEN, _SERVICE_TOKEN_TS
+    now = time.time()
+
+    if _SERVICE_TOKEN and (now - _SERVICE_TOKEN_TS) < _SERVICE_TOKEN_TTL:
+        return _SERVICE_TOKEN
+
+    token = await pb_login_service()
+    _SERVICE_TOKEN = token
+    _SERVICE_TOKEN_TS = now
+    return token
 
 
 def pb_escape(s: str) -> str:
@@ -312,15 +348,19 @@ async def search_posts(query: str, page: int, per_page: int) -> Tuple[List[Dict[
 
 async def pb_get(path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
+    token = await get_service_token()
+    headers = {"Authorization": f"Bearer {token}"}
     async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.get(url, params=params or {})
+        r = await client.get(url, params=params or {}, headers=headers)
         r.raise_for_status()
         return r.json()
 
 async def pb_patch(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
+    token = await get_service_token()
+    headers = {"Authorization": f"Bearer {token}"}
     async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.patch(url, json=payload)
+        r = await client.patch(url, json=payload, headers=headers)
         r.raise_for_status()
         return r.json()
 
@@ -801,6 +841,15 @@ async def get_post_by_slug(slug: str) -> Dict[str, Any]:
 
 async def pb_post(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
+    token = await get_service_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.post(url, json=payload, headers=headers)
+        r.raise_for_status()
+        return r.json()
+
+async def pb_post_noauth(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    url = PB_URL.rstrip("/") + path
     async with httpx.AsyncClient(timeout=15) as client:
         r = await client.post(url, json=payload)
         r.raise_for_status()
@@ -1164,11 +1213,6 @@ async def debug_views():
         "seen_size": len(_VIEW_SEEN),
     }
 
-@router.post("/_debug/views/flush")
-async def debug_flush_views():
-    await flush_pending_views()
-    return {"ok": True, "pending": _VIEW_PENDING}
-
 @app.on_event("startup")
 async def start_view_flush_loop():
     async def loop():
@@ -1180,7 +1224,5 @@ async def start_view_flush_loop():
             await asyncio.sleep(VIEW_FLUSH_INTERVAL_SECONDS)
 
     asyncio.create_task(loop())
-
-
 
 app.include_router(router)

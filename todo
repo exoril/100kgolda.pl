@@ -1,5 +1,5 @@
 MVP:
-zrobic to jebane zliczanie wyswietlen
+zabezpieczyc zmienne srodowiskowe z config
 naprawic prefill w formualrzu kontaktu i komentarza po nieudanej wysyłce
 zaimplementowac zliczanie wyswietlen
 przejrzeć ponownie api rules w pb
