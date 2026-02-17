@@ -2,7 +2,7 @@
   <div class="post-preview-left">
     <a href="/post/{{ post.slug | urlencode }}">
       <img class="post-thumbnail"
-           src="{{ post.thumbnail if post.thumbnail else '/static/placeholder.png' }}"
+           src="{{ post.thumbnail_url or '/static/placeholder.png' }}"
            alt="{{ post.title }} - zdjęcie do wpisu"
            loading="lazy"
            decoding="async">

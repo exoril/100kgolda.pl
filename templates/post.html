@@ -15,6 +15,12 @@
 {% endblock %}
 
 {% block content %}
+  <article
+  id="post"
+  data-post="1"
+  data-post-id="{{ post.id }}"
+  data-post-slug="{{ post.slug }}"
+>
   <h1>{{ post.title }}</h1>
 
   <div class="post-content-meta">
@@ -39,7 +45,19 @@
          decoding="async">
   {% endif %}
 
-  {% include "partials/toc.html" %}
+  {% if post.toc and post.toc|length > 0 %}
+<nav class="toc" aria-label="Spis treści">
+  <h3>Spis treści</h3>
+  <ol>
+    {% for item in post.toc %}
+      <li class="toc-item toc-h{{ item.level }}">
+        <a class="toc-link" href="#{{ item.id }}" title="{{ item.title }}">{{ item.title | truncate(30) }}</a>
+      </li>
+    {% endfor %}
+  </ol>
+</nav>
+{% endif %}
+
 
   <div class="post-content">
     {{ lazy_images(post.content) | safe }}
@@ -54,7 +72,26 @@
   {% if post.comments_on %}
     <div id="comments" class="comments-container">
       <div class="comments-section">
-        {% include "partials/comments-section.html" %}
+        <h3>Komentarze: ({{ comments_total_items if comments_total_items is not none else (post.comments_total or 0) }})</h3>
+
+{% set approved_comments = comments | selectattr('approved') | list if comments else [] %}
+
+{% if approved_comments %}
+    <ul class="comments-list">
+    {% for comment in approved_comments %}
+        <li>
+            <p><strong>{{ comment.author }}</strong>
+                {% if comment.email %}(<a href="mailto:{{ comment.email }}">{{ comment.email }}</a>){% endif %} napisał(a):
+                <span class="comment-date">Dodano {{ comment.created_pl[:16] }}</span>
+            </p>
+            <p>{{ comment.content }}</p>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Brak komentarzy. Bądź pierwszy!</p>
+{% endif %}
+
 
         {% if comments_total_pages and comments_total_pages > 1 %}
           <div class="comments-pagination">
@@ -72,7 +109,31 @@
       </div>
 
       <div class="add-comment">
-        {% include "partials/add_comment.html" %}
+            <h3>Dodaj komentarz</h3>
+    <form action="/post/{{ post.slug }}/comment#comments" method="post">
+        <label for="author">Imię:<span style="color:red">*</span></label>
+        <input type="text" name="author" id="author" required maxlength="20" value="{{ prefill_author or '' }}">
+
+        <label for="email">E-mail</label>
+        <input type="email" name="email" id="email" maxlength="30" value="{{ prefill_email or ''}}">
+
+        <label for="content">Komentarz:<span style="color:red">*</span> <span class="chars-container">(pozostało <span id="chars-left">200</span> znaków)</span></label>
+        <textarea name="content" id="comment-content" rows="6" required maxlength="200"></textarea>
+
+        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+
+        <label class="terms">
+            <input type="checkbox" name="terms_accepted" id="terms_accepted" required>
+            Zapoznałem(-am) się z
+            <a href="/warunki" target="_blank" rel="noopener">warunkami korzystania z serwisu</a>
+            oraz <a href="/polityka-prywatnosci" target="_blank" rel="noopener">polityką prywatności</a>
+                i akceptuję ich postanowienia.<span style="color:red">*</span>
+        </label>
+
+
+        <button type="submit">Wyślij</button>
+    </form>
+
       </div>
     </div>
   {% else %}
@@ -85,3 +146,4 @@
 {% block modals %}
   {% include "partials/share-modal.html" %}
 {% endblock %}
+</article>

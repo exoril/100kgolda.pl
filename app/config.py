@@ -1,9 +1,10 @@
-PB_URL = "http://127.0.0.1:8090"  # albo gdzie masz PB
+PB_URL = "http://127.0.0.1:8090"
+PB_ADMIN_EMAIL = "marcinjakubgolda@gmail.com"
+PB_ADMIN_PASSWORD = "KochamPocketBase123!"
 
 POSTS_COLLECTION = "posts"
 COMMENTS_COLLECTION = "comments"
 SERIES_COLLECTION = "series"
-CONTACT_MESSAGES_COLLECTION = "contact_messages"
 
 RECAPTCHA_SITE_KEY = "6LdbiV8sAAAAAF8LDZM0A8DDHWOD-DXhI-v7Dc7q"
 RECAPTCHA_SECRET_KEY = "6LdbiV8sAAAAAOZ0nKuYXgpZqSVXrJAvnUB_OImB"
@@ -14,6 +15,3 @@ SMTP_USER = "formularz@100kgolda.pl"
 SMTP_PASS = "Rn-d58abaknUH(-k"
 CONTACT_TO = "marcin@100kgolda.pl"
 CONTACT_FROM = "formularz@100kgolda.pl"
-
-
-

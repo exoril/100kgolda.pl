@@ -303,3 +303,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+(function () {
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/[$()*+.?[\\\]^{|}-]/g, "\\$&") + "=([^;]*)"));
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  function registerPostViewOncePer24h({ postSlug, postId, identity, endpointBase = "" }) {
+    try {
+      if (!postSlug || !postId || !identity) return;
+
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const key = `pv:${identity}:${postId}`;
+      const now = Date.now();
+
+      const last = parseInt(localStorage.getItem(key) || "0", 10);
+      if (Number.isFinite(last) && last > 0 && (now - last) < DAY_MS) return;
+
+      localStorage.setItem(key, String(now));
+
+      fetch(`${endpointBase}/post/${encodeURIComponent(postSlug)}/view`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        keepalive: true,
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // tylko publiczne dane posta w HTML
+    const el = document.querySelector("[data-post='1'][data-post-id][data-post-slug]");
+    if (!el) return;
+
+    const postId = el.getAttribute("data-post-id");
+    const postSlug = el.getAttribute("data-post-slug");
+
+    // identyfikator: vid (jeśli czytelne) albo visitor_id
+    const identity = getCookie("vid") || getCookie("visitor_id");
+    if (!identity) return;
+
+    registerPostViewOncePer24h({ postSlug, postId, identity });
+  });
+})();

@@ -3,6 +3,11 @@
 {% block title %}Kategorie{% endblock %}
 
 {% block content %}
-    <h1>Kategoria: <strong>"{{ selected_category }}"</strong></h1>
+    <h1>Kategoria: <strong>"{{ selected_category }}"</strong>
+    {% if total_pages > 1 %}
+        , strona: {{ page }}
+    {% endif %}
+    </h1>
+
     {% include "partials/post-list.html" with context %}
 {% endblock %}

@@ -34,6 +34,7 @@ logs/
 
 # ===== PocketBase runtime data (DO NOT COMMIT) =====
 pb_data/
+pb_migrations/
 pocketbase.exe
 
 # ===== Node / frontend tooling (you have package*.json) =====

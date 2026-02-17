@@ -4,13 +4,13 @@
     {% endfor %}
 
     {% if pagination_html %}
-        {{ pagination_html | safe }}
+        {% include "partials/pagination.html" %}
     {% endif %}
 
-{% else %}
-    {% if context_name %} {# np. selected_category lub query #}
+  {% else %}
+    {% if context_name %}
         <p>Brak wyników dla "{{ context_name }}"</p>
     {% else %}
         <p>Brak postów do wyświetlenia.</p>
-    {% endif %}
-{% endif %}
+  {% endif %}
+  {% endif %}

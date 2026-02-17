@@ -3,14 +3,14 @@
 {% block title %}500 - wewnętrzny błąd serwera{% endblock %}
 
 {% block content %}
-  {% if error_id %}
     <div class="error">
         <h1>Coś poszło nie tak</h1>
         <img src="/static/500.png">
         <p>Spróbuj odświeżyć stronę albo wróć później.</p>
-        <p>Kod błędu: <b>{{ error_id }}</b></p>
+        {% if error_id %}
+          <p>Kod błędu: <b>{{ error_id }}</b></p>
+        {% endif %}
         <a href="/">Wróć do strony głównej</a>
     </div>
-  {% endif %}
 {% endblock %}
 
