@@ -1,5 +1,6 @@
 MVP:
 zabezpieczyc zmienne srodowiskowe z config
+wywalic autouzupelnianie formularza kontakt, komentarza, szukajki
 naprawic prefill w formualrzu kontaktu i komentarza po nieudanej wysyłce
 zaimplementowac zliczanie wyswietlen
 przejrzeć ponownie api rules w pb

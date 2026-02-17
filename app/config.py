@@ -1,21 +1,27 @@
-PB_URL = "http://127.0.0.1:8090"
-PB_ADMIN_EMAIL = "marcinjakubgolda@gmail.com"
-PB_ADMIN_PASSWORD = "KochamPocketBase123!"
+import os
 
-POSTS_COLLECTION = "posts"
-COMMENTS_COLLECTION = "comments"
-SERIES_COLLECTION = "series"
-SERVICE_COLLECTION = "users"
+def env(name: str, default: str = "") -> str:
+    val = os.getenv(name, default)
+    if val == "" and default == "":
+        raise RuntimeError(f"Missing env var: {name}")
+    return val
 
-RECAPTCHA_SITE_KEY = "6LdbiV8sAAAAAF8LDZM0A8DDHWOD-DXhI-v7Dc7q"
-RECAPTCHA_SECRET_KEY = "6LdbiV8sAAAAAOZ0nKuYXgpZqSVXrJAvnUB_OImB"
+PB_URL = env("PB_URL")
 
-PB_SERVICE_EMAIL = "serwis@100kgolda.pl"
-PB_SERVICE_PASSWORD = "Pr7zTtF0wnUtSKo"
+POSTS_COLLECTION = env("POSTS_COLLECTION")
+COMMENTS_COLLECTION = env("COMMENTS_COLLECTION")
+SERIES_COLLECTION = env("SERIES_COLLECTION")
+SERVICE_COLLECTION = env("SERVICE_COLLECTION")
 
-SMTP_HOST = "s54.cyber-folks.pl"
-SMTP_PORT = 465
-SMTP_USER = "formularz@100kgolda.pl"
-SMTP_PASS = "Rn-d58abaknUH(-k"
-CONTACT_TO = "marcin@100kgolda.pl"
-CONTACT_FROM = "formularz@100kgolda.pl"
+RECAPTCHA_SITE_KEY = env("RECAPTCHA_SITE_KEY")
+RECAPTCHA_SECRET_KEY = env("RECAPTCHA_SECRET_KEY")
+
+PB_SERVICE_EMAIL = env("PB_SERVICE_EMAIL")
+PB_SERVICE_PASSWORD = env("PB_SERVICE_PASSWORD")
+
+SMTP_HOST = env("SMTP_HOST")
+SMTP_PORT = int(env("SMTP_PORT"))
+SMTP_USER = env("SMTP_USER")
+SMTP_PASS = env("SMTP_PASS")
+CONTACT_TO = env("CONTACT_TO")
+CONTACT_FROM = env("CONTACT_FROM")

@@ -1,4 +1,6 @@
 from __future__ import annotations
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +12,7 @@ from html import unescape
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
+
 from app.config import (
     PB_URL,
     RECAPTCHA_SITE_KEY,
@@ -1036,6 +1039,9 @@ def send_contact_email_sync(name: str, email: str, subject: str, message: str, v
         s.send_message(msg)
 
 CONTACT_COOLDOWN_SECONDS = 600  # 10 minut
+# visitor_id -> last_sent_ts
+_CONTACT_LAST: Dict[str, int] = {}
+
 
 from typing import Dict, Tuple
 
@@ -1129,6 +1135,44 @@ async def kontakt(request: Request):
         context_name="kontakt",
         recaptcha_site_key=RECAPTCHA_SITE_KEY,
     )
+
+@router.post("/kontakt")
+async def kontakt_submit(
+    request: Request,
+    name: str = Form(...),
+    email: str = Form(...),
+    subject: str = Form(...),
+    message: str = Form(...),
+    recaptcha_response: str = Form(None, alias="g-recaptcha-response"),
+):
+    # VID z middleware cookie
+    vid = request.cookies.get("visitor_id")
+    now = _now_utc_ts()
+
+    # prościutki cooldown per visitor
+    if vid:
+        last = _CONTACT_LAST.get(vid)
+        if last is not None and (now - last) < CONTACT_COOLDOWN_SECONDS:
+            return RedirectResponse(url="/kontakt?error=cooldown", status_code=303)
+
+    # reCAPTCHA
+    ok = await verify_recaptcha(recaptcha_response, remoteip=request.client.host if request.client else None)
+    if not ok:
+        return RedirectResponse(url="/kontakt?error=recaptcha", status_code=303)
+
+    # wysyłka maila (SMTP jest sync, więc do wątku)
+    try:
+        import asyncio
+        await asyncio.to_thread(send_contact_email_sync, name, email, subject, message, vid)
+    except Exception as e:
+        print("[CONTACT ERROR]", repr(e))
+        return RedirectResponse(url="/kontakt?error=send", status_code=303)
+
+    if vid:
+        _CONTACT_LAST[vid] = now
+
+    return RedirectResponse(url="/kontakt?sent=1", status_code=303)
+
 
 
 @router.post("/post/{slug}/comment")
