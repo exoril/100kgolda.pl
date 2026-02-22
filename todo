@@ -1,8 +1,11 @@
 MVP:
+
+postawić serwer smtp do wysyłki maili z formularza kontaktowego
 dodac cachowanie albo cos w ten desen zeby strona szybciej sie ladowala (teraz jest tragedia)
 zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
 zmodyfikowac content kazdej wiadomosci z uzyciem <hr> przed kazdym naglowkiem h2
 
+dodać partial gallery do użycia wewnątrz posta
 przejrzeć plik main.py, usunąć niepotrzebne rzeczy, może podzielić plik na kilka mniejszych, np. main.py, admin.py, utils.py itd
 
 3. dodać linki do stron społecznościowych w sidebarze/stopce oraz stronie kontakt
@@ -13,6 +16,7 @@ pousuwać komentarze z wszystkich plików
 ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
 przetestować działania modali i toastów w responsywnych stanach strony
 zaktualizować politykę i warunki z datą deployu
+rotate .env
 
 
 TYLE - hostować, po zahostowaniu:
