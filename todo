@@ -1,5 +1,6 @@
 MVP:
 
+zrobić inaczej zliczanie wyświetleń, żeby nie zapisywało w ramie (bo dużo workerów i może to działać nieprawidłowo)
 postawić serwer smtp do wysyłki maili z formularza kontaktowego
 dodac cachowanie albo cos w ten desen zeby strona szybciej sie ladowala (teraz jest tragedia)
 zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
