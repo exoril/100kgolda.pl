@@ -270,20 +270,12 @@ def format_pl_date(date_str: str) -> str:
             return f"{int(d)} {_PL_MONTHS.get(int(m), int(m))} {int(y)} r."
         except Exception:
             return date_str
+        
 COMMENT_COOLDOWN_SECONDS = 300
-
-
-def pb_dt_to_utc(dt_str: str) -> datetime:
-    s = (dt_str or "").replace("Z", "+00:00").replace(" ", "T")
-    dt = datetime.fromisoformat(s)
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
-
 
 async def get_last_comment_utc_for_post(visitor_id: str, post_id: str) -> datetime | None:
     data = await pb_get(
-        "/api/collections/comments/records",
+        f"/api/collections/{COMMENTS_COLLECTION}/records",
         params={
             "page": 1,
             "perPage": 1,
@@ -477,7 +469,7 @@ async def get_series_by_id(series_id: str) -> Optional[Dict[str, Any]]:
         return _SERIES_CACHE[series_id]
 
     try:
-        data = await pb_get(f"/api/collections/series/records/{series_id}")
+        data = await pb_get(f"/api/collections/{SERIES_COLLECTION}/records/{series_id}")
     except Exception:
         data = None
 
@@ -562,7 +554,7 @@ async def get_comment_counts() -> Dict[str, int]:
 
     while True:
         data = await pb_get(
-            "/api/collections/comments/records",
+            f"/api/collections/{COMMENTS_COLLECTION}/records",
             params={
                 "page": page,
                 "perPage": per_page,
@@ -814,7 +806,7 @@ def pb_dt_to_utc(dt_str: str) -> datetime:
 
 async def get_last_comment_utc(visitor_id: str) -> datetime | None:
     data = await pb_get(
-        "/api/collections/comments/records",
+        f"/api/collections/{COMMENTS_COLLECTION}/records",
         params={
             "page": 1,
             "perPage": 1,
@@ -891,7 +883,7 @@ async def pb_post_noauth(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
 
 async def get_comments_for_post(post_id: str, page: int, per_page: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     data = await pb_get(
-        "/api/collections/comments/records",
+        f"/api/collections/{COMMENTS_COLLECTION}/records",
         params={
             "page": page,
             "perPage": per_page,
@@ -1242,7 +1234,7 @@ async def add_comment(
             return resp
 
     await pb_post(
-        "/api/collections/comments/records",
+        f"/api/collections/{COMMENTS_COLLECTION}/records",
         payload={
             "post": post["id"],
             "visitor_id": visitor_id,
