@@ -13,7 +13,6 @@ from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
-
 from app.config import (
     PB_URL,
     RECAPTCHA_SITE_KEY,
@@ -971,13 +970,36 @@ async def post_detail(
 ):
     post = await get_post_by_slug(slug)
 
-    visitor_id = request.cookies.get("visitor_id")
+# --- views: próbujemy utworzyć rekord 1/visitor/post/day (day = początek dnia UTC) ---
+    visitor_id = request.cookies.get(VISITOR_COOKIE_NAME)
     if visitor_id:
-        now_ts = _now_utc_ts()
-        if should_count_view(visitor_id, post["id"], now_ts):
-            mark_view_pending(post["id"])
-            print(f"[VIEW] +1 (RAM only) post_id={post['id']} slug={slug} visitor_id={visitor_id[:6]}…")
+        day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        try:
+            await pb_post(
+                "/api/collections/views/records",
+                {
+                    "visitor_id": visitor_id,
+                    "post": post["id"],
+                    "day": day_start.isoformat(),
+                },
+            )
+            print(f"[VIEW] created views record post={post['id']} slug={slug} visitor={visitor_id[:6]}… day={day_start.date()}")
+        except httpx.HTTPStatusError as exc:
+            # Przy UNIQUE INDEX (visitor_id, post, day) -> duplikat = ignorujemy
+            status_code = exc.response.status_code
+            body = ""
+            try:
+                body = exc.response.text or ""
+            except Exception:
+                body = ""
 
+            low = body.lower()
+            is_duplicate = status_code in (400, 409) and ("unique" in low or "constraint" in low or "already exists" in low)
+
+            if is_duplicate:
+                print(f"[VIEW] duplicate (ignored) post={post['id']} slug={slug} visitor={visitor_id[:6]}… day={day_start.date()}")
+            else:
+                print(f"[VIEW] ERROR status={status_code} post={post['id']} slug={slug} body={body[:200]!r}")
 
     comments, cmeta = await get_comments_for_post(post["id"], page=cpage, per_page=10)
 
