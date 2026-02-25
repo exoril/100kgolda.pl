@@ -1,41 +1,45 @@
 from __future__ import annotations
 from dotenv import load_dotenv
 load_dotenv()
-from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, Request, status
+from fastapi import APIRouter, FastAPI, HTTPException, Request, status, Query, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from urllib.parse import quote_plus
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from datetime import datetime, timezone
+from urllib.parse import urlencode
+from urllib.parse import quote_plus
 from html import unescape
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
-from urllib.parse import urlencode
+from email.message import EmailMessage
+import httpx
+import uuid
+import unicodedata
+import smtplib
+import asyncio
+import time
+import secrets
+import re
+import time
 from app.config import (
     PB_URL,
+    POSTS_COLLECTION,
+    COMMENTS_COLLECTION,
+    SERIES_COLLECTION,
+    SERVICE_COLLECTION,
     RECAPTCHA_SITE_KEY,
     RECAPTCHA_SECRET_KEY,
-    SERVICE_COLLECTION,
+    PB_SERVICE_EMAIL,
+    PB_SERVICE_PASSWORD,
     SMTP_HOST,
     SMTP_PORT,
     SMTP_USER,
     SMTP_PASS,
     CONTACT_TO,
     CONTACT_FROM,
-    PB_SERVICE_EMAIL,
-    PB_SERVICE_PASSWORD,
 )
-import secrets
-import httpx
-import uuid
-import re
-import unicodedata
-import smtplib
-import os
-import time
-from email.message import EmailMessage
 
 # --- HTTP client reuse (one AsyncClient per process) ---
 _HTTP_CLIENT: httpx.AsyncClient | None = None
@@ -52,7 +56,6 @@ async def close_http_client() -> None:
         await _HTTP_CLIENT.aclose()
         _HTTP_CLIENT = None
 
-
 app = FastAPI()
 
 @app.on_event("startup")
@@ -63,7 +66,6 @@ async def startup_http_client() -> None:
 async def shutdown_http_client() -> None:
     await close_http_client()
 
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 app.state.templates = templates
@@ -71,18 +73,16 @@ templates.env.filters["urlencode"] = lambda s: quote_plus(str(s))
 
 router = APIRouter()
 
-import secrets
-from fastapi import Request
-
-
-
-
 _SERVICE_TOKEN: str | None = None
 _SERVICE_TOKEN_TS: float = 0.0
 _SERVICE_TOKEN_TTL = 60 * 30  # 30 min (prosto; potem można lepiej)
 
 VISITOR_COOKIE_NAME = "visitor_id"
 VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 rok
+
+WARSAW_TZ = ZoneInfo("Europe/Warsaw")
+
+COMMENT_COOLDOWN_SECONDS = 300
 
 @app.middleware("http")
 async def ensure_visitor_id_cookie(request: Request, call_next):
@@ -104,7 +104,6 @@ async def ensure_visitor_id_cookie(request: Request, call_next):
     )
     return response
 
-
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     if exc.status_code == status.HTTP_404_NOT_FOUND:
@@ -116,7 +115,6 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         )
 
     return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
-
 
 @app.exception_handler(Exception)
 async def internal_error_handler(request: Request, exc: Exception):
@@ -144,7 +142,6 @@ async def pb_login_service() -> str:
         raise RuntimeError("PocketBase login did not return token")
     return token
 
-
 async def get_service_token() -> str:
     global _SERVICE_TOKEN, _SERVICE_TOKEN_TS
     now = time.time()
@@ -157,11 +154,9 @@ async def get_service_token() -> str:
     _SERVICE_TOKEN_TS = now
     return token
 
-
 def pb_escape(s: str) -> str:
     # PocketBase filter używa cudzysłowów -> uciekamy "
     return (s or "").replace('"', '\\"').strip()
-
 
 _TAG_RE = re.compile(r"<[^>]+>")
 _IMG_TAG_RE = re.compile(r"<img\b([^>]*?)>", re.IGNORECASE)
@@ -182,13 +177,9 @@ _PL_MONTHS = {
     12: "grudnia",
 }
 
-import re
-from typing import Any, Dict, List, Tuple
-
 _H_RE = re.compile(r"<h([23])([^>]*)>(.*?)</h\1>", re.IGNORECASE | re.DOTALL)
 _ID_RE = re.compile(r'\bid\s*=\s*([\'"])(.*?)\1', re.IGNORECASE)
 _TAG_RE = re.compile(r"<[^>]+>")
-
 
 def slugify_id(text: str) -> str:
     # proste, stabilne id (działa z PL znakami)
@@ -249,10 +240,6 @@ def build_toc_and_inject_ids(html: str) -> Tuple[str, List[Dict[str, Any]]]:
 
     new_html = _H_RE.sub(repl, html)
     return new_html, toc
-
-
-WARSAW_TZ = ZoneInfo("Europe/Warsaw")
-
 
 def format_warsaw_datetime(dt_str: str) -> str:
     if not dt_str:
@@ -351,7 +338,7 @@ async def search_posts(query: str, page: int, per_page: int) -> Tuple[List[Dict[
     flt = f'(published=true) && ((title~"{q}") || (content~"{q}"))'
 
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": page,
             "perPage": per_page,
@@ -435,7 +422,7 @@ def normalize_post(raw: Dict[str, Any]) -> Dict[str, Any]:
         "category": category,
         "creator": raw.get("creator"),
         "thumbnail": raw.get("thumbnail"),
-        "thumbnail_url": pb_file_url("posts", raw.get("id"), raw.get("thumbnail")),
+        "thumbnail_url": pb_file_url(f"{POSTS_COLLECTION}", raw.get("id"), raw.get("thumbnail")),
         "views": raw.get("views") or 0,
         "created_raw": created_raw,
         "updated_raw": updated_raw,
@@ -448,7 +435,7 @@ def normalize_post(raw: Dict[str, Any]) -> Dict[str, Any]:
 
 async def get_all_posts(page: int, per_page: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": page,
             "perPage": per_page,
@@ -506,7 +493,6 @@ async def attach_series_data(raw_post: Dict[str, Any]) -> None:
 
     raw_post["_series"] = await get_series_by_id(str(sid))
 
-# --- simple in-memory TTL cache for sidebar widgets ---
 _PUBLIC_CACHE: dict[str, tuple[float, Any]] = {}
 
 def _cache_get(key: str, ttl: int) -> Any | None:
@@ -559,11 +545,6 @@ async def get_public_widgets_cached() -> Dict[str, Any]:
         "post_count": post_count,
     }
 
-
-
-import time
-from typing import Optional, Dict
-
 _COMMENT_COUNT_CACHE: Optional[Dict[str, int]] = None
 _COMMENT_COUNT_CACHE_TS: float = 0.0
 _COMMENT_COUNT_CACHE_TTL = 60  # sekundy
@@ -604,7 +585,6 @@ async def get_comment_counts() -> Dict[str, int]:
     _COMMENT_COUNT_CACHE_TS = now
     return counts
 
-
 def build_pagination_context(request: Request, pagination: Dict[str, Any]) -> Dict[str, Any]:
     page = int(pagination["page"])
     total_pages = int(pagination["total_pages"])
@@ -624,7 +604,6 @@ def build_pagination_context(request: Request, pagination: Dict[str, Any]) -> Di
         "next_url": next_url,
         "page_urls": page_urls,
     }
-
 
 def build_pagination_html(request: Request, pagination: Dict[str, Any]) -> str:
     page = int(pagination["page"])
@@ -652,10 +631,9 @@ def build_pagination_html(request: Request, pagination: Dict[str, Any]) -> str:
     parts.append("</div>")
     return "".join(parts)
 
-
 async def get_categories() -> List[str]:
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": 1,
             "perPage": 200,
@@ -670,10 +648,9 @@ async def get_categories() -> List[str]:
             cats.append(c)
     return sorted(cats)
 
-
 async def get_top_posts(limit: int = 5) -> List[Dict[str, Any]]:
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": 1,
             "perPage": limit,
@@ -683,7 +660,6 @@ async def get_top_posts(limit: int = 5) -> List[Dict[str, Any]]:
         },
     )
     return [normalize_post(it) for it in (data.get("items") or [])]
-
 
 async def get_top_commented(limit: int = 5) -> List[Dict[str, Any]]:
     counts = await get_comment_counts()
@@ -698,7 +674,7 @@ async def get_top_commented(limit: int = 5) -> List[Dict[str, Any]]:
     flt = f'(published=true) && (comments_on=true) && ({or_part})'
 
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": 1,
             "perPage": limit,
@@ -724,23 +700,18 @@ async def get_top_commented(limit: int = 5) -> List[Dict[str, Any]]:
 
     return result
 
-
 async def get_post_count() -> int:
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={"page": 1, "perPage": 1, "filter": "published=true", "fields": "id"},
     )
     return int(data.get("totalItems") or 0)
-
-
-from fastapi import HTTPException
-
 
 async def get_posts_by_category(category: str, page: int, per_page: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     cat = pb_escape(category)
 
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": page,
             "perPage": per_page,
@@ -763,25 +734,23 @@ async def get_posts_by_category(category: str, page: int, per_page: int) -> Tupl
     }
     return posts, pagination
 
-
 async def public_context(request: Request) -> Dict[str, Any]:
-    widgets = await get_public_widgets_cached()
+    try:
+        widgets = await get_public_widgets_cached()
+    except Exception as e:
+        print("[WIDGETS ERROR]", repr(e))
+        widgets = {"categories": [], "top_posts": [], "top_commented": [], "post_count": 0}
+
     return {
         "query": request.query_params.get("q"),
         "selected_category": request.query_params.get("category"),
         **widgets,
     }
 
-
-
 async def render_template(request: Request, name: str, **ctx: Any) -> HTMLResponse:
     base = await public_context(request)
     merged = {**base, **ctx}
     return templates.TemplateResponse(name, {"request": request, **merged})
-
-
-from fastapi import HTTPException, Query
-
 
 @router.get("/", response_class=HTMLResponse)
 async def index(
@@ -811,44 +780,30 @@ async def index(
         context_name=None,
     )
 
-
 @router.get("/moje-projekty", response_class=HTMLResponse)
 async def moje_projekty(request: Request):
     return await render_template(request, "moje-projekty.html", context_name="moje-projekty")
-
 
 @router.get("/o-blogu", response_class=HTMLResponse)
 async def o_blogu(request: Request):
     return await render_template(request, "o-blogu.html", context_name="o-blogu")
 
-
 @router.get("/o-mnie", response_class=HTMLResponse)
 async def o_mnie(request: Request):
     return await render_template(request, "o-mnie.html", context_name="o-mnie")
-
 
 @router.get("/warunki", response_class=HTMLResponse)
 async def warunki(request: Request):
     return await render_template(request, "warunki.html", context_name="warunki")
 
-
 @router.get("/polityka-prywatnosci", response_class=HTMLResponse)
 async def polityka_prywatnosci(request: Request):
     return await render_template(request, "polityka-prywatnosci.html", context_name="polityka-prywatnosci")
-
-
-from datetime import datetime
-from fastapi import HTTPException
-
 
 def pb_file_url(collection: str, record_id: str, filename: Optional[str]) -> Optional[str]:
     if not record_id or not filename:
         return None
     return f"{PB_URL.rstrip('/')}/api/files/{collection}/{record_id}/{filename}"
-
-
-COMMENT_COOLDOWN_SECONDS = 300
-
 
 def pb_dt_to_utc(dt_str: str) -> datetime:
     s = (dt_str or "").replace("Z", "+00:00").replace(" ", "T")
@@ -856,7 +811,6 @@ def pb_dt_to_utc(dt_str: str) -> datetime:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
-
 
 async def get_last_comment_utc(visitor_id: str) -> datetime | None:
     data = await pb_get(
@@ -874,7 +828,6 @@ async def get_last_comment_utc(visitor_id: str) -> datetime | None:
         return None
     return pb_dt_to_utc(items[0].get("created"))
 
-
 def normalize_comment(raw: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": raw.get("id"),
@@ -889,10 +842,9 @@ def normalize_comment(raw: Dict[str, Any]) -> Dict[str, Any]:
         "created_pl": format_warsaw_datetime(raw.get("created")),
     }
 
-
 async def get_post_by_slug(slug: str) -> Dict[str, Any]:
     data = await pb_get(
-        "/api/collections/posts/records",
+        f"/api/collections/{POSTS_COLLECTION}/records",
         params={
             "page": 1,
             "perPage": 1,
@@ -921,7 +873,6 @@ async def get_post_by_slug(slug: str) -> Dict[str, Any]:
 
     return post
 
-
 async def pb_post(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     url = PB_URL.rstrip("/") + path
     token = await get_service_token()
@@ -937,7 +888,6 @@ async def pb_post_noauth(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     r = await client.post(url, json=payload)
     r.raise_for_status()
     return r.json()
-
 
 async def get_comments_for_post(post_id: str, page: int, per_page: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     data = await pb_get(
@@ -960,7 +910,6 @@ async def get_comments_for_post(post_id: str, page: int, per_page: int) -> Tuple
         "total_items": int(data.get("totalItems") or len(comments)),
     }
     return comments, meta
-
 
 @router.get("/post/{slug}", response_class=HTMLResponse)
 async def post_detail(
@@ -1023,10 +972,6 @@ async def post_detail(
         recaptcha_site_key=RECAPTCHA_SITE_KEY,
         context_name="post",
     )
-
-
-from fastapi import HTTPException
-
 
 @router.get("/szukaj", response_class=HTMLResponse)
 async def search_view(
@@ -1150,10 +1095,6 @@ CONTACT_COOLDOWN_SECONDS = 600  # 10 minut
 # visitor_id -> last_sent_ts
 _CONTACT_LAST: Dict[str, int] = {}
 
-
-from typing import Dict, Tuple
-
-
 def _now_utc_ts() -> int:
     return int(datetime.now(timezone.utc).timestamp())
 
@@ -1171,7 +1112,6 @@ async def kontakt(request: Request):
 
     prefill_name = (qp.get("cn") or "").strip()
     prefill_email = (qp.get("ce") or "").strip()
-    prefill_subject = (qp.get("cs") or "").strip()
     prefill_message = (qp.get("cm") or "").strip()
 
     return await render_template(
@@ -1181,7 +1121,6 @@ async def kontakt(request: Request):
         recaptcha_site_key=RECAPTCHA_SITE_KEY,
         prefill_name=prefill_name,
         prefill_email=prefill_email,
-        prefill_subject=prefill_subject,
         prefill_message=prefill_message,
     )
 
@@ -1227,7 +1166,6 @@ async def kontakt_submit(
 
     # wysyłka maila (SMTP jest sync, więc do wątku)
     try:
-        import asyncio
         await asyncio.to_thread(send_contact_email_sync, name, email, subject, message, vid)
     except Exception as e:
         print("[CONTACT ERROR]", repr(e))

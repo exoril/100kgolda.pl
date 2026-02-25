@@ -14,7 +14,15 @@
             <label for="email">E-mail:<span style="color:red">*</span></label>
             <input type="email" name="email" id="email" required maxlength="80" value="{{ prefill_email or '' }}" autocomplete="off">
             <label for="subject">Temat:<span style="color:red">*</span></label>
-            <input type="text" name="subject" id="subject" required maxlength="120" value="{{ prefill_subject or '' }}" autocomplete="off">
+            <select name="subject" id="subject" required>
+                <option value="" disabled selected> </option>
+                <option value="Pytanie">Pytanie</option>
+                <option value="Sugestia">Sugestia</option>
+                <option value="Współpraca">Współpraca</option>
+                <option value="Moderacja">Moderacja</option>
+                <option value="Zgloszenie">Zgłoszenie błędu</option>
+                <option value="Inne">Inne</option>
+            </select>
             <label for="message">
                 Wiadomość:<span style="color:red">*</span>
                 <span class="chars-container">(pozostało <span id="chars-left">1000</span> znaków)</span>
