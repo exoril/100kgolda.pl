@@ -1131,75 +1131,6 @@ _CONTACT_LAST: Dict[str, int] = {}
 
 from typing import Dict, Tuple
 
-VIEW_COOLDOWN_SECONDS = 60 * 60 * 24  # 24 godziny
-
-# (visitor_id, post_id) -> last_counted_ts
-_VIEW_SEEN: Dict[Tuple[str, str], int] = {}
-# post_id -> liczba nowych viewów do zapisania
-_VIEW_PENDING: Dict[str, int] = {}
-
-def mark_view_pending(post_id: str) -> None:
-    _VIEW_PENDING[post_id] = int(_VIEW_PENDING.get(post_id, 0)) + 1
-
-
-def should_count_view(visitor_id: str, post_id: str, now_ts: int) -> bool:
-    """
-    Zwraca True tylko jeśli dla (visitor_id, post_id) minęło 24h od ostatniego naliczenia.
-    """
-    key = (visitor_id, post_id)
-    last = _VIEW_SEEN.get(key)
-    if last is None:
-        _VIEW_SEEN[key] = now_ts
-        return True
-
-    if now_ts - last >= VIEW_COOLDOWN_SECONDS:
-        _VIEW_SEEN[key] = now_ts
-        return True
-
-    return False
-
-import asyncio
-
-VIEW_FLUSH_INTERVAL_SECONDS = 300  # 5 minut
-
-async def flush_pending_views() -> None:
-    """
-    Zapisuje _VIEW_PENDING do PocketBase (inkrementacja posts.views).
-    Jeśli zapis się nie uda, wraca do pending.
-    """
-    global _VIEW_PENDING
-
-    if not _VIEW_PENDING:
-        return
-
-    # snapshot + natychmiastowe wyczyszczenie (żeby w trakcie flushu nowe viewy wpadały do świeżego dict)
-    snapshot = _VIEW_PENDING
-    _VIEW_PENDING = {}
-
-    failed: Dict[str, int] = {}
-
-    for post_id, inc in snapshot.items():
-        if not inc:
-            continue
-        try:
-            # UWAGA: to jest "na sztywno" ustawienie wartości, więc musimy znać aktualne views.
-            # Najprościej: pobierz aktualne views i dopiero ustaw views=old+inc.
-            post = await pb_get(f"/api/collections/posts/records/{post_id}", params={"fields": "views"})
-            current = int(post.get("views") or 0)
-            new_val = current + int(inc)
-
-            await pb_patch(f"/api/collections/posts/records/{post_id}", {"views": new_val})
-            print(f"[VIEW FLUSH] post_id={post_id} +{inc} -> {new_val}")
-
-        except Exception as e:
-            print(f"[VIEW FLUSH ERROR] post_id={post_id} +{inc} err={repr(e)}")
-            failed[post_id] = failed.get(post_id, 0) + int(inc)
-
-    # jeśli coś padło, wrzuć z powrotem do pending
-    if failed:
-        for post_id, inc in failed.items():
-            _VIEW_PENDING[post_id] = int(_VIEW_PENDING.get(post_id, 0)) + int(inc)
-
 
 def _now_utc_ts() -> int:
     return int(datetime.now(timezone.utc).timestamp())
@@ -1380,16 +1311,5 @@ async def add_comment(
 #         "seen_size": len(_VIEW_SEEN),
 #     }
 
-@app.on_event("startup")
-async def start_view_flush_loop():
-    async def loop():
-        while True:
-            try:
-                await flush_pending_views()
-            except Exception as e:
-                print("[VIEW FLUSH LOOP ERROR]", repr(e))
-            await asyncio.sleep(VIEW_FLUSH_INTERVAL_SECONDS)
-
-    asyncio.create_task(loop())
 
 app.include_router(router)
