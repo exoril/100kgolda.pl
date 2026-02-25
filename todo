@@ -2,8 +2,6 @@ MVP:
 
 przetestować zliczanie views
 postawić serwer smtp do wysyłki maili z formularza kontaktowego
-
-dodac cachowanie albo cos w ten desen zeby strona szybciej sie ladowala (teraz jest tragedia)
 zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
 zmodyfikowac content kazdej wiadomosci z uzyciem <hr> przed kazdym naglowkiem h2
 

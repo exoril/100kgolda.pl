@@ -14,6 +14,7 @@ from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 from email.message import EmailMessage
+from bs4 import BeautifulSoup
 import httpx
 import uuid
 import unicodedata
@@ -313,6 +314,34 @@ def lazy_images(html: str) -> str:
 
 templates.env.globals["lazy_images"] = lazy_images
 
+def build_gallery_html(gallery_items: list[dict]) -> str:
+    # gallery_items: [{"url": "...", "thumb": "...", "alt": "..."}]
+    parts = ['<div class="gallery-grid">']
+    for it in gallery_items:
+        parts.append(
+            f'<a href="{it["url"]}" class="gallery-item" data-full="{it["url"]}">'
+            f'  <img src="{it["thumb"]}" alt="{it.get("alt","")}" loading="lazy">'
+            f'</a>'
+        )
+    parts.append("</div>")
+    return "\n".join(parts)
+
+
+def inject_gallery_placeholders(post_html: str, gallery_items: list[dict]) -> str:
+    if not post_html or not gallery_items:
+        return post_html
+
+    soup = BeautifulSoup(post_html, "html.parser")
+
+    # wszystkie <section class="gallery">...</section>
+    for sec in soup.select("section.gallery"):
+        # opcjonalnie: jeśli chcesz tylko puste sekcje
+        # if sec.get_text(strip=True): continue
+
+        sec.clear()
+        sec.append(BeautifulSoup(build_gallery_html(gallery_items), "html.parser"))
+
+    return str(soup)
 
 def calc_reading_time_minutes(html_content: str, wpm: int = 200) -> int:
     if not html_content:
@@ -852,6 +881,53 @@ async def get_post_by_slug(slug: str) -> Dict[str, Any]:
 
     post = normalize_post(raw)
 
+    # =========================
+    # ✅ GALERIA: z pola PB "gallery" + placeholder w HTML
+    # W treści posta wklejasz: <section class="gallery"></section>
+    # =========================
+
+    def _gallery_items_from_post(raw_post: Dict[str, Any]) -> List[Dict[str, str]]:
+        files = raw_post.get("gallery") or []
+        rid = raw_post.get("id")
+        out: List[Dict[str, str]] = []
+        for fn in files:
+            if not fn:
+                continue
+            url = pb_file_url(f"{POSTS_COLLECTION}", rid, fn)
+            thumb = url + "?thumb=500x0"  # możesz zmienić rozmiar
+            out.append({"url": url, "thumb": thumb, "alt": fn})
+        return out
+
+    def _build_gallery_html(items: List[Dict[str, str]]) -> str:
+        if not items:
+            return ""
+        parts = ['<div class="gallery-grid">']
+        for it in items:
+            parts.append(
+                f'<a href="{it["url"]}" class="gallery-item" data-full="{it["url"]}">'
+                f'<img src="{it["thumb"]}" alt="{it.get("alt","")}" loading="lazy" decoding="async">'
+                f"</a>"
+            )
+        parts.append("</div>")
+        return "".join(parts)
+
+    def _inject_gallery_placeholder(html: str, gallery_html: str) -> str:
+        if not html or not gallery_html:
+            return html or ""
+        # Najprostszy i stabilny wariant: dokładny placeholder
+        placeholder = '<section class="gallery"></section>'
+        if placeholder in html:
+            return html.replace(placeholder, f'<section class="gallery">{gallery_html}</section>')
+        # Minimalny fallback na whitespace/newline z edytora
+        placeholder2 = '<section class="gallery"> </section>'
+        if placeholder2 in html:
+            return html.replace(placeholder2, f'<section class="gallery">{gallery_html}</section>')
+        return html
+
+    post["gallery_items"] = _gallery_items_from_post(raw)
+    post["content"] = _inject_gallery_placeholder(post.get("content", ""), _build_gallery_html(post["gallery_items"]))
+
+    # TOC + id w nagłówkach
     post["content"], post["toc"] = build_toc_and_inject_ids(post.get("content", ""))
 
     if post.get("comments_on"):
