@@ -1,6 +1,5 @@
 MVP:
 
-zrobić inaczej zliczanie wyświetleń, żeby nie zapisywało w ramie (bo dużo workerów i może to działać nieprawidłowo)
 postawić serwer smtp do wysyłki maili z formularza kontaktowego
 dodac cachowanie albo cos w ten desen zeby strona szybciej sie ladowala (teraz jest tragedia)
 zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
@@ -18,7 +17,7 @@ ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
 przetestować działania modali i toastów w responsywnych stanach strony
 zaktualizować politykę i warunki z datą deployu
 rotate .env
-
+hook PB który kasuje wszystkie rekordy w views starsze niż 30 dni, żeby nie obciążać bazy danych (i ewentualnie dodać do tego jakąś statystykę, np. ile rekordów zostało usuniętych)
 
 TYLE - hostować, po zahostowaniu:
 a. zrobić listę zaimplementowanych funkcjonalności so-far, w stronie o-blogu dodać sekcję "co dalej" z listą planowanych funkcjonalności i poprosić o feedback, sugestie, pomysły
