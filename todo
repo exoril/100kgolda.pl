@@ -1,6 +1,7 @@
 MVP:
 dodać pole sources w kolekcji posts 
 podpiąć ssl
+poprawić metadane w każdej templatce tak jak jest w index.html
 poprawic formularz kontaktowy
 postawić serwer smtp do wysyłki maili z formularza kontaktowego
 zmodyfikowac content kazdej wiadomosci z uzyciem <hr> przed kazdym naglowkiem h2

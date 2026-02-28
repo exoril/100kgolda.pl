@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dotenv import load_dotenv
 load_dotenv()
-from fastapi import APIRouter, FastAPI, HTTPException, Request, status, Query, Form
+from fastapi import APIRouter, FastAPI, HTTPException, Request, status, Query, Form, Path
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1189,6 +1189,64 @@ async def search_view(
         pagination_html=pagination_html,
         **pag_ctx,
         context_name="search",
+    )
+
+@app.get("/tag/{tag}", response_class=HTMLResponse)
+async def tag_page(
+    request: Request,
+    tag: str,
+    page: int = Query(1),
+    per_page: int = Query(10, ge=1, le=50),
+):
+    if page < 1:
+        raise HTTPException(status_code=404)
+
+    # filtr dla multi-select tags
+    filter_str = f'published=true && tags ~ "{tag}"'
+
+    data = await pb_get(
+        f"/api/collections/{POSTS_COLLECTION}/records",
+        params={
+            "page": page,
+            "perPage": per_page,
+            "filter": filter_str,
+            "sort": "-created",
+        },
+    )
+
+    items = data.get("items") or []
+    posts = [normalize_post(it) for it in items]
+
+    total_pages = int(data.get("totalPages") or 1)
+    if total_pages > 0 and page > total_pages:
+        raise HTTPException(status_code=404)
+
+    pagination_html = build_pagination_html(request, {
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "total_items": data.get("totalItems", 0),
+    })
+    pag_ctx = build_pagination_context(request, {
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "total_items": data.get("totalItems", 0),
+    })
+
+    return await render_template(
+        request,
+        "tag.html",
+        posts=posts,
+        selected_tag=tag,
+        pagination_html=pagination_html,
+        pagination={
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "total_items": data.get("totalItems", 0),
+        },
+        **pag_ctx,
     )
 
 
