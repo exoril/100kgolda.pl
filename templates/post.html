@@ -63,31 +63,51 @@
     {{ lazy_images(post.content) | safe }}
   </div>
 
-{% if post.sources %}
-  <div class="post-sources">
-    <p>Źródła:</p>
+      <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
+    <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
+  </div>
 
-    <ol>
-      {% for s in post.sources %}
-        {% if s is string %}
-          <li>{{ s }}</li>
-        {% else %}
-          <li>
-            {% if s.url %}
-              <a href="{{ s.url }}" target="_blank" rel="noopener nofollow">{{ s.title or s.url }}</a>
+{% if post.sources or post.tags %}
+  <div class="post-meta-bottom">
+
+    {% if post.sources %}
+      <div class="post-sources">
+        <p><strong>Źródła:</strong></p>
+        <ol>
+          {% for s in post.sources %}
+            {% if s is string %}
+              <li>{{ s }}</li>
             {% else %}
-              {{ s.title or s }}
+              <li>
+                {% if s.url %}
+                  <a href="{{ s.url }}" target="_blank" rel="noopener nofollow">
+                    {{ s.title or s.url }}
+                  </a>
+                {% else %}
+                  {{ s.title or s }}
+                {% endif %}
+              </li>
             {% endif %}
-          </li>
-        {% endif %}
-      {% endfor %}
-    </ol>
+          {% endfor %}
+        </ol>
+      </div>
+    {% endif %}
+
+    {% if post.tags %}
+      <div class="post-tags">
+        <p><strong>Tagi:</strong></p>
+        <div class="tag-list">
+          {% for t in post.tags %}
+            <a class="tag" href="/tag/{{ t|urlencode }}">{{ t }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
   </div>
 {% endif %}
 
-    <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
-    <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
-  </div>
+
 
 <section class="related-posts">
   <h3>Przeczytaj jeszcze:</h3>

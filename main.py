@@ -552,6 +552,7 @@ def normalize_post(raw: Dict[str, Any]) -> Dict[str, Any]:
         "reading_time": calc_reading_time_minutes(content),
         "series": series_obj,
         "sources": raw.get("sources") or [],
+        "tags": raw.get("tags") or [],
     }
 
 

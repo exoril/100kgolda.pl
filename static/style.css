@@ -1621,7 +1621,6 @@ hr.hr-default{
 }
 
 .post-sources{
-  margin-top: 18px;
   font-size: 0.85rem;
   color: var(--dim-font);
 }
@@ -1642,4 +1641,59 @@ hr.hr-default{
 
 .post-sources li::before{
   display: none; /* wyłącz ikonki listy w źródłach */
+}
+
+.post-meta-bottom{
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  font-size: 0.85rem;
+  color: var(--dim-font);
+}
+
+.post-sources a,
+.post-tags a{
+  color: var(--dim-font);
+}
+
+.post-sources ol{
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+/* wyłącz globalne ikonki list w źródłach */
+.post-sources li{
+  padding-left: 0;
+}
+.post-sources li::before{
+  display: none;
+}
+
+/* tagi jako małe “pigułki”, dalej w szarości */
+.tag-list{
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag{
+  display: inline-block;
+  padding: 4px 8px;
+  border: var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+  background: transparent;
+}
+
+.tag:hover{
+  border-color: var(--highlight);
+}
+
+/* mobile: pod sobą */
+@media (max-width: 800px){
+  .post-meta-bottom{
+    grid-template-columns: 1fr;
+  }
 }
