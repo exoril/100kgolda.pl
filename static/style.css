@@ -1212,7 +1212,7 @@ hr.hr-default{
   border: 0;
   border-top: 1px solid var(--highlight);
   height: 0;
-  margin: 10px 0 10px 0;
+  margin: 20px 0 10px 0;
 }
 
 .terms input[type="checkbox"]{
@@ -1460,9 +1460,8 @@ hr.hr-default{
 
 /* ====== Gallery inside post ====== */
 .post-content .gallery {
-  margin: 22px 0;
-  padding: 14px;
-  border-radius: 14px;
+  margin: 0;
+  border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(0, 0, 0, 0.03);
 }
@@ -1539,5 +1538,81 @@ hr.hr-default{
 
   .post-content .gallery-item img {
     height: 150px;
+  }
+}
+/* Obrazy w treści posta nie mogą wyjść poza kolumnę */
+.post-content img {
+  max-width: 640px;
+  height: auto;
+  display: block;
+}
+
+/* Trochę oddechu */
+.post-content img {
+  margin: 1rem auto;
+}
+
+/* Żeby szerokie obrazki nie robiły „schodków” przy zaokrągleniach itp. */
+.post-content img {
+  border-radius: 12px;
+}
+
+.related-posts{
+  margin-top: 22px;
+}
+
+.related-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.related-card{
+  display: block;
+  padding: 12px 14px;
+
+  border: var(--border);
+  border-radius: var(--border-radius-var);
+  background: var(--surface-soft);
+
+  color: var(--font-color);
+  text-decoration: none;
+
+  transition: border-color .15s ease, transform .05s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+.related-card:hover{
+  border-color: var(--highlight);
+  background: var(--btn-hover-bg); /* to samo co hover buttonów */
+  text-decoration: none; /* nie podkreślaj */
+}
+
+.related-card:active{
+  transform: translateY(1px); /* jak button */
+}
+
+.related-card:focus,
+.related-card:focus-visible{
+  outline: none;
+  border-color: var(--highlight);
+  box-shadow: var(--focus-ring); /* jak button */
+}
+
+.related-card__title{
+  font-weight: bold;
+  color: var(--highlight); /* jak linki/akcent */
+  line-height: 1.25;
+}
+
+.related-card__meta{
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--dim-font);
+}
+
+/* mobile */
+@media (max-width: 800px){
+  .related-grid{
+    grid-template-columns: 1fr;
   }
 }

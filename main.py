@@ -343,6 +343,106 @@ def inject_gallery_placeholders(post_html: str, gallery_items: list[dict]) -> st
 
     return str(soup)
 
+def _as_list(v):
+    if v is None:
+        return []
+    if isinstance(v, list):
+        return [str(x).strip() for x in v if str(x).strip()]
+    if isinstance(v, str):
+        # gdybyś kiedyś trzymał tagi jako CSV
+        return [x.strip() for x in v.split(",") if x.strip()]
+    return []
+
+def _parse_dt(s: str | None) -> datetime | None:
+    if not s:
+        return None
+    try:
+        # PocketBase zwykle daje ISO, czasem z 'Z'
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+async def get_related_posts(post: dict, limit: int = 6) -> list[dict]:
+    """
+    Automatycznie dobiera podobne posty:
+    - mocno promuje tę samą kategorię
+    - promuje wspólne tagi
+    - lekko promuje popularność (views) i świeżość (created)
+    """
+    post_id = post.get("id")
+    slug = post.get("slug")
+    category = (post.get("category") or "").strip()
+    tags = set(_as_list(post.get("tags")))
+
+    # 1) pobierz kandydatów z tej samej kategorii (dużo jakości za mało zapytań)
+    candidates = []
+    if category:
+        data = await pb_get(
+            f"/api/collections/{POSTS_COLLECTION}/records",
+            params={
+                "page": 1,
+                "perPage": 80,  # wystarczy na ranking
+                "filter": f'published=true && category="{category}" && id!="{post_id}"',
+                "fields": "id,slug,title,category,tags,views,created",
+                "sort": "-views,-created",
+            },
+        )
+        candidates = data.get("items") or []
+
+    # 2) jeśli mało, dobierz z “reszty świata” (fallback)
+    if len(candidates) < limit:
+        data2 = await pb_get(
+            f"/api/collections/{POSTS_COLLECTION}/records",
+            params={
+                "page": 1,
+                "perPage": 120,
+                "filter": f'published=true && id!="{post_id}"',
+                "fields": "id,slug,title,category,tags,views,created",
+                "sort": "-views,-created",
+            },
+        )
+        more = data2.get("items") or []
+        # doklej bez duplikatów
+        seen = {c.get("id") for c in candidates}
+        for it in more:
+            if it.get("id") not in seen:
+                candidates.append(it)
+                seen.add(it.get("id"))
+            if len(candidates) >= 200:
+                break
+
+    # 3) scoring
+    now = datetime.now(timezone.utc)
+
+    def score(p: dict) -> float:
+        s = 0.0
+
+        # kategoria
+        if category and (p.get("category") or "").strip() == category:
+            s += 100.0
+
+        # tagi wspólne
+        ptags = set(_as_list(p.get("tags")))
+        common = len(tags & ptags) if tags else 0
+        s += common * 15.0
+
+        # popularność
+        try:
+            s += min(float(p.get("views") or 0), 1000.0) * 0.02  # do +20 pkt
+        except Exception:
+            pass
+
+        # świeżość (delikatnie)
+        dt = _parse_dt(p.get("created"))
+        if dt:
+            days = max((now - dt).days, 0)
+            s += max(0.0, 20.0 - min(days, 400) * 0.05)  # do +20, spada powoli
+
+        return s
+
+    candidates.sort(key=score, reverse=True)
+    return candidates[:limit]
+
 def calc_reading_time_minutes(html_content: str, wpm: int = 200) -> int:
     if not html_content:
         return 1
@@ -938,6 +1038,8 @@ async def get_post_by_slug(slug: str) -> Dict[str, Any]:
 
     post["thumbnail"] = post["thumbnail_url"]
     post["seo_date"] = post.get("created_raw") or ""
+
+    post["related_posts"] = await get_related_posts(post, limit=6)
 
     return post
 

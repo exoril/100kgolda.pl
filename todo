@@ -1,13 +1,12 @@
 MVP:
-
-przetestować zliczanie views
+dodać pole sources w kolekcji posts 
+podpiąć ssl
+poprawic formularz kontaktowy
 postawić serwer smtp do wysyłki maili z formularza kontaktowego
-zajac sie poprawnym wyswietlaniem dodatkowych obrazków w poscie
 zmodyfikowac content kazdej wiadomosci z uzyciem <hr> przed kazdym naglowkiem h2
-
-dodać partial gallery do użycia wewnątrz posta
+obsługa inputu bez js (wywalić całkiem js)
 przejrzeć plik main.py, usunąć niepotrzebne rzeczy, może podzielić plik na kilka mniejszych, np. main.py, admin.py, utils.py itd
-
+dodac uslugi-funkcjonalności jak dark visitors
 3. dodać linki do stron społecznościowych w sidebarze/stopce oraz stronie kontakt
 9. dodać meta_description do każdego posta w kolekcji posts PB
 zapytać chatgpt o komunikaty w konsoli przeglądarki i co można z nimi zrobić

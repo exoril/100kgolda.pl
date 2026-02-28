@@ -63,9 +63,31 @@
     {{ lazy_images(post.content) | safe }}
   </div>
 
-  <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
+    <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
     <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
   </div>
+
+<section class="related-posts">
+  <h3>Przeczytaj jeszcze:</h3>
+
+  {% if post.related_posts %}
+    <div class="related-grid">
+      {% for p in post.related_posts %}
+        <a class="related-card" href="/post/{{ p.slug }}">
+          <div class="related-card__title">{{ p.title }}</div>
+          {% if p.category %}
+            <div class="related-card__meta">{{ p.category }}</div>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Brak propozycji.</p>
+  {% endif %}
+</section>
+
+
+
 
   <hr class="hr-default"><br>
 
