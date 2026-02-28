@@ -306,6 +306,7 @@ a.btn:active,
 .sidebar a:hover{
   border-color: var(--highlight);
   background: rgba(250,218,63,0.08);
+
   text-decoration: none;
 }
 
@@ -1363,7 +1364,8 @@ hr.hr-default{
 .sidebar-nav li{
   text-align: left;
   background-color: var(--bg-color);
-  border-radius: var(--border-radius-var)
+  border-radius: var(--border-radius-var);
+  border-color: var(var(--highlight))
 }
 
 .sidebar-nav a{
@@ -1372,7 +1374,8 @@ hr.hr-default{
   justify-content: flex-start;
   gap: .6rem;
   text-align: left;
-  font-weight: normal;;
+  font-weight: normal;
+  border: var(--border-color);
 }
 
 .sidebar-nav .icon{
@@ -1573,7 +1576,7 @@ hr.hr-default{
 
   border: var(--border);
   border-radius: var(--border-radius-var);
-  background: var(--surface-soft);
+  background: transparent;
 
   color: var(--font-color);
   text-decoration: none;
@@ -1599,7 +1602,7 @@ hr.hr-default{
 }
 
 .related-card__title{
-  font-weight: bold;
+  font-weight: normal;
   color: var(--highlight); /* jak linki/akcent */
   line-height: 1.25;
 }
@@ -1615,4 +1618,28 @@ hr.hr-default{
   .related-grid{
     grid-template-columns: 1fr;
   }
+}
+
+.post-sources{
+  margin-top: 18px;
+  font-size: 0.85rem;
+  color: var(--dim-font);
+}
+
+.post-sources a{
+  color: var(--dim-font);
+  text-decoration: underline;
+}
+
+.post-sources ol{
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.post-sources li{
+  padding-left: 0; /* u Ciebie globalnie li ma ikonę – tu to wyłączamy */
+}
+
+.post-sources li::before{
+  display: none; /* wyłącz ikonki listy w źródłach */
 }

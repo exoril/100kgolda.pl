@@ -551,6 +551,7 @@ def normalize_post(raw: Dict[str, Any]) -> Dict[str, Any]:
         "updated": format_pl_date(updated_raw),
         "reading_time": calc_reading_time_minutes(content),
         "series": series_obj,
+        "sources": raw.get("sources") or [],
     }
 
 

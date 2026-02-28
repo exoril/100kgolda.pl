@@ -63,6 +63,28 @@
     {{ lazy_images(post.content) | safe }}
   </div>
 
+{% if post.sources %}
+  <div class="post-sources">
+    <p>Źródła:</p>
+
+    <ol>
+      {% for s in post.sources %}
+        {% if s is string %}
+          <li>{{ s }}</li>
+        {% else %}
+          <li>
+            {% if s.url %}
+              <a href="{{ s.url }}" target="_blank" rel="noopener nofollow">{{ s.title or s.url }}</a>
+            {% else %}
+              {{ s.title or s }}
+            {% endif %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </div>
+{% endif %}
+
     <div class="reactions" data-post-id="{{ post.id }}" data-active="{{ active_reaction or '' }}">
     <a class="btn share-link" href="#" data-modal="share-modal-{{ post.id }}">Udostępnij</a>
   </div>
@@ -85,9 +107,6 @@
     <p>Brak propozycji.</p>
   {% endif %}
 </section>
-
-
-
 
   <hr class="hr-default"><br>
 
