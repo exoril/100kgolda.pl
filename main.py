@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 from email.message import EmailMessage
 from bs4 import BeautifulSoup
+from collections import Counter
 import httpx
 import uuid
 import unicodedata
@@ -589,6 +590,40 @@ async def get_all_posts(page: int, per_page: int) -> Tuple[List[Dict[str, Any]],
     return posts, pagination
 
 
+
+
+# --------- POPULAR TAGS (widget) ---------
+
+async def get_popular_tags(limit: int = 10) -> list[str]:
+    """
+    Zlicza tagi z opublikowanych postów i zwraca top N (najczęściej używanych).
+    """
+    # pobierz wiele rekordów (maks. 2000)
+    data = await pb_get(
+        f"/api/collections/{POSTS_COLLECTION}/records",
+        params={
+            "page": 1,
+            "perPage": 2000,
+            "filter": "published=true",
+            "fields": "tags",
+        },
+    )
+
+    items = data.get("items") or []
+    all_tags = []
+    for it in items:
+        tags = it.get("tags") or []
+        if isinstance(tags, list):
+            all_tags.extend(tags)
+        elif isinstance(tags, str):
+            # w razie stringa zamiast listy
+            parts = [t.strip() for t in tags.split(",") if t.strip()]
+            all_tags.extend(parts)
+
+    counts = Counter(all_tags)
+    most = counts.most_common(limit)
+    return [tag for tag, _ in most]
+
 _SERIES_CACHE: Dict[str, Optional[Dict[str, Any]]] = {}
 
 
@@ -644,6 +679,7 @@ async def get_public_widgets_cached() -> Dict[str, Any]:
     TTL_TOP_POSTS = 60 * 2        # 2 min
     TTL_TOP_COMMENTED = 60 * 2    # 2 min
     TTL_POST_COUNT = 60 * 5       # 5 min
+    TTL_POPULAR_TAGS = 60 * 10    # 10 min
 
     categories = _cache_get("public:categories", TTL_CATEGORIES)
     if categories is None:
@@ -661,11 +697,16 @@ async def get_public_widgets_cached() -> Dict[str, Any]:
     if post_count is None:
         post_count = _cache_set("public:post_count", await get_post_count())
 
+    popular_tags = _cache_get("public:popular_tags", TTL_POPULAR_TAGS)
+    if popular_tags is None:
+        popular_tags = _cache_set("public:popular_tags", await get_popular_tags(limit=10))
+
     return {
         "categories": categories,
         "top_posts": top_posts,
         "top_commented": top_commented,
         "post_count": post_count,
+        "popular_tags": popular_tags,
     }
 
 _COMMENT_COUNT_CACHE: Optional[Dict[str, int]] = None

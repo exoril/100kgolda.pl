@@ -208,13 +208,28 @@
       Zero spamu. W każdej chwili możesz się wypisać.
     </p>
   </form>
-</div> -->
-
+</div> -->   
         <div class="total-posts-widget">
           <p>Ilość wpisów: {{ post_count }}</p>
         </div>
+
+
+        <div class="tags-widget">
+          <h3>Tagi</h3>
+          {% if popular_tags %}
+            <div class="tag-list">
+              {% for t in popular_tags %}
+                <a class="tag" href="/tag/{{ t|urlencode }}">{{ t }}</a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="widget-empty">Brak tagów.</p>
+          {% endif %}
+        </div>
       </aside>
     </div>
+
+    
 
     <footer class="footer">
       <span style="font-size: 10px"
