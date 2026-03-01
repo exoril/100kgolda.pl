@@ -1697,3 +1697,28 @@ hr.hr-default{
     grid-template-columns: 1fr;
   }
 }
+
+.sidebar-social {
+  margin-top: auto;            /* jeśli sidebar jest flex-column */
+  padding-top: 16px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.sidebar-social__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.sidebar-social__link:hover,
+.sidebar-social__link:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+}
+

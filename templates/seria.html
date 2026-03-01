@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block title %}Seria{% endblock %}
+
+{% block content %}
+    <h1>Seria: <strong>"{{ series_label or selected_series }}"</strong>
+    {% if total_pages > 1 %}
+        , strona: {{ page }}
+    {% endif %}
+    </h1>
+
+    {% include "partials/post-list.html" with context %}
+{% endblock %}

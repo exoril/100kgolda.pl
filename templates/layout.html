@@ -125,6 +125,40 @@
             </li>
           </ul>
         </nav>
+              <div class="sidebar-social" aria-label="Social media">
+        <a
+          class="sidebar-social__link"
+          href="https://www.facebook.com/profile.php?id=61580977737133"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook (otwiera się w nowej karcie)"
+          title="Facebook"
+        >
+          <img src="/static/social/facebook.svg" alt="" width="22" height="22" loading="lazy" decoding="async" />
+        </a>
+
+        <a
+          class="sidebar-social__link"
+          href="https://x.com/100kGolda"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="X (otwiera się w nowej karcie)"
+          title="X"
+        >
+          <img src="/static/social/x.svg" alt="" width="22" height="22" loading="lazy" decoding="async" />
+        </a>
+
+        <a
+          class="sidebar-social__link"
+          href="https://www.instagram.com/TWOJ_PROFIL/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram (otwiera się w nowej karcie)"
+          title="Instagram"
+        >
+          <img src="/static/social/instagram.svg" alt="" width="22" height="22" loading="lazy" decoding="async" />
+        </a>
+      </div>
       </aside>
 
       <main id="main" class="content" role="main" tabindex="-1">
@@ -146,6 +180,20 @@
     {% for cat in categories %}
       <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>
         {{ cat }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="categories-list-widget">
+  <label for="categories-list">Serie</label>
+  <select id="categories-list" name="category"
+    onchange="if(this.value){ window.location.href='/seria/' + this.value; }">
+    <option value="">Wybierz...</option>
+
+    {% for s in series_list %}
+      <option value="{{ s.id }}" {% if s.id == selected_series %}selected{% endif %}>
+        {{ s.label }}
       </option>
     {% endfor %}
   </select>

@@ -674,16 +674,20 @@ def _cache_invalidate(prefix: str) -> None:
             _PUBLIC_CACHE.pop(k, None)
 
 async def get_public_widgets_cached() -> Dict[str, Any]:
-    # TTL-e (sekundy) – dobrane pod bloga
-    TTL_CATEGORIES = 60 * 30      # 30 min
-    TTL_TOP_POSTS = 60 * 2        # 2 min
-    TTL_TOP_COMMENTED = 60 * 2    # 2 min
-    TTL_POST_COUNT = 60 * 5       # 5 min
-    TTL_POPULAR_TAGS = 60 * 10    # 10 min
+    TTL_CATEGORIES = 60 * 30
+    TTL_SERIES = 60 * 30
+    TTL_TOP_POSTS = 60 * 2
+    TTL_TOP_COMMENTED = 60 * 2
+    TTL_POST_COUNT = 60 * 5
+    TTL_POPULAR_TAGS = 60 * 10
 
     categories = _cache_get("public:categories", TTL_CATEGORIES)
     if categories is None:
         categories = _cache_set("public:categories", await get_categories())
+
+    series_list = _cache_get("public:series_list", TTL_SERIES)
+    if series_list is None:
+        series_list = _cache_set("public:series_list", await get_series_list())
 
     top_posts = _cache_get("public:top_posts", TTL_TOP_POSTS)
     if top_posts is None:
@@ -703,6 +707,7 @@ async def get_public_widgets_cached() -> Dict[str, Any]:
 
     return {
         "categories": categories,
+        "series_list": series_list,
         "top_posts": top_posts,
         "top_commented": top_commented,
         "post_count": post_count,
@@ -794,6 +799,104 @@ def build_pagination_html(request: Request, pagination: Dict[str, Any]) -> str:
 
     parts.append("</div>")
     return "".join(parts)
+
+async def get_series_list() -> List[Dict[str, str]]:
+    """
+    Zwraca listę serii do widgetu.
+    W kolekcji `series` używa wyłącznie pola `name`.
+    """
+    data = await pb_get(
+        f"/api/collections/{SERIES_COLLECTION}/records",
+        params={
+            "page": 1,
+            "perPage": 200,
+            "fields": "id,name",
+        },
+    )
+
+    items = data.get("items") or []
+    out: List[Dict[str, str]] = []
+
+    for it in items:
+        sid = str(it.get("id") or "").strip()
+        name = str(it.get("name") or "").strip()
+
+        # jeśli nie ma id lub name, pomijamy wpis (bo chcesz tylko name)
+        if not sid or not name:
+            continue
+
+        out.append({"id": sid, "label": name})
+
+    out.sort(key=lambda x: x["label"].lower())
+    return out
+
+
+async def get_posts_by_series(series_id: str, page: int, per_page: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    sid = pb_escape(series_id)
+
+    data = await pb_get(
+        f"/api/collections/{POSTS_COLLECTION}/records",
+        params={
+            "page": page,
+            "perPage": per_page,
+            "sort": "-created",
+            "filter": f'(published=true) && (series="{sid}")',
+        },
+    )
+
+    items = data.get("items") or []
+    for it in items:
+        await attach_series_data(it)
+
+    posts = [normalize_post(it) for it in items]
+
+    pagination = {
+        "page": int(data.get("page") or page),
+        "per_page": int(data.get("perPage") or per_page),
+        "total_pages": int(data.get("totalPages") or 1),
+        "total_items": int(data.get("totalItems") or len(posts)),
+    }
+    return posts, pagination
+
+
+@router.get("/seria/{series_id}", response_class=HTMLResponse)
+async def series_view(
+    request: Request,
+    series_id: str = Path(...),
+    page: int = Query(1),
+    per_page: int = Query(10, ge=1, le=50),
+):
+    if page < 1:
+        raise HTTPException(status_code=404)
+
+    # nazwa serii do nagłówka (w PB: id, name, suffix, description)
+    series_obj = await get_series_by_id(series_id)
+    if isinstance(series_obj, dict):
+        series_label = (series_obj.get("name") or "").strip() or series_id
+    else:
+        series_label = series_id
+
+    posts, pagination = await get_posts_by_series(series_id=series_id, page=page, per_page=per_page)
+
+    total_pages = int(pagination["total_pages"])
+    if total_pages > 0 and page > total_pages:
+        raise HTTPException(status_code=404)
+
+    pagination_html = build_pagination_html(request, pagination)
+    pag_ctx = build_pagination_context(request, pagination)
+
+    return await render_template(
+        request,
+        "seria.html",  # <-- TO JEST KLUCZOWA ZMIANA
+        posts=posts,
+        query="",
+        context_name=f"seria:{series_id}",
+        selected_series=series_id,
+        series_label=series_label,
+        pagination=pagination,
+        pagination_html=pagination_html,
+        **pag_ctx,
+    )
 
 async def get_categories() -> List[str]:
     data = await pb_get(
@@ -903,11 +1006,15 @@ async def public_context(request: Request) -> Dict[str, Any]:
         widgets = await get_public_widgets_cached()
     except Exception as e:
         print("[WIDGETS ERROR]", repr(e))
-        widgets = {"categories": [], "top_posts": [], "top_commented": [], "post_count": 0}
+        widgets = {"categories": [], "series_list": [], "top_posts": [], "top_commented": [], "post_count": 0, "popular_tags": []}
+
+    # series_id jest w path params dla /seria/{series_id}
+    selected_series = request.path_params.get("series_id")
 
     return {
         "query": request.query_params.get("q"),
         "selected_category": request.query_params.get("category"),
+        "selected_series": selected_series,
         **widgets,
     }
 

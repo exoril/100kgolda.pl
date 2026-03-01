@@ -1,5 +1,6 @@
 MVP:
-dodać pole sources w kolekcji posts 
+przetestować paginację templatki seria.html
+dodać konto instagram
 podpiąć ssl
 poprawić metadane w każdej templatce tak jak jest w index.html
 poprawic formularz kontaktowy
@@ -17,6 +18,7 @@ ujednolicić modal "wysyłanie" z innymi modalami: cookies, notice-toast itd
 przetestować działania modali i toastów w responsywnych stanach strony
 zaktualizować politykę i warunki z datą deployu
 rotate .env
+dostosować szerokość drawerów na mobilnym view na nieco mniejszą
 hook PB który kasuje wszystkie rekordy w views starsze niż 30 dni, żeby nie obciążać bazy danych (i ewentualnie dodać do tego jakąś statystykę, np. ile rekordów zostało usuniętych)
 
 TYLE - hostować, po zahostowaniu:
