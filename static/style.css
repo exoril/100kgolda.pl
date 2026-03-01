@@ -1,6 +1,3 @@
-/* =========================
-   GLOBAL THEME
-   ========================= */
 :root{
   --bg-color: #2c2c2c;
   --bg-color2: #252525;
@@ -19,20 +16,15 @@
 
   --thumb-size: 220px;
 
-  /* layout */
   --layout-gap: 22px;
 
-  /* surfaces */
   --surface: var(--bg-color2);
   --surface-soft: rgba(255,255,255,0.03);
 
-  /* borders */
   --border: 1px solid var(--border-color);
 
-  /* focus */
   --focus-ring: 0 0 0 2px rgba(250,218,63,0.25);
 
-  /* buttons */
   --btn-radius: 999px;
   --btn-padding-y: 10px;
   --btn-padding-x: 12px;
@@ -40,13 +32,11 @@
   --btn-hover-bg: rgba(250,218,63,0.08);
 }
 
-/* Firefox */
 *{
   scrollbar-width: thin;
   scrollbar-color: var(--highlight) var(--bg-color2);
 }
 
-/* Chrome / Edge / Safari */
 *::-webkit-scrollbar{
   width: 10px;
   height: 10px;
@@ -67,9 +57,6 @@
   background: rgba(250,218,63,0.55);
 }
 
-/* =========================
-   BASE
-   ========================= */
 html{ font-family: sans-serif; }
 html, body{ height: 100%; }
 
@@ -96,10 +83,6 @@ a:hover{
   text-decoration: underline; 
 }
 
-/* =========================
-   GLOBAL BUTTONS (one style everywhere)
-   ========================= */
-/* button + inputs */
 button,
 input[type="button"],
 input[type="submit"],
@@ -149,7 +132,6 @@ input[type="reset"]:focus-visible{
   box-shadow: var(--focus-ring);
 }
 
-/* link-as-button (use class .btn wherever you want) */
 a.btn,
 .comments-pagination a,
 .pagination a{
@@ -182,7 +164,6 @@ a.btn:active,
   transform: translateY(1px);
 }
 
-/* Reaction buttons inherit global look but need font-color (not highlight) */
 .reaction-btn{
   color: var(--font-color);
 }
@@ -193,9 +174,6 @@ a.btn:active,
   text-align: center;
 }
 
-/* =========================
-   LAYOUT
-   ========================= */
 .layout{
   flex: 1;
   min-height: 0;
@@ -206,14 +184,11 @@ a.btn:active,
   align-items: stretch;
 
   background-color: var(--bg-color2);
-  /* padding: var(--padding-global); */
 }
 
 .sidebar,
 .content,
 .widget-bar{
-  /* border: var(--border); */
-  /* border-radius: var(--border-radius-var); */
   padding: 10px;
   margin: 0;
   overflow: auto;
@@ -265,17 +240,10 @@ a.btn:active,
   margin-bottom: 24px;
 }
 
-.content img {
-  /* coś wymyślic */
-}
-
 .content {
   background-color: var(--bg-color2);
 }
 
-/* =========================
-   SIDEBAR
-   ========================= */
 .sidebar{ 
   text-align: center;
   display: flex;
@@ -283,8 +251,6 @@ a.btn:active,
   gap: 10px;
 }
 
-
-/* sidebar links are "nav buttons" – keep consistent but slightly different surface */
 .sidebar a{
   display: flex;
   align-items: center;
@@ -292,10 +258,7 @@ a.btn:active,
   gap: 10px;
 
   padding: 10px 12px;
-  /* border: var(--border); */
   border-radius: var(--border-radius-var);
-
-  /* background: var(--bg-color2); */
   color: var(--font-color);
 
   text-decoration: none;
@@ -321,7 +284,6 @@ a.btn:active,
   border-color: var(--highlight);
 }
 
-/* logo link jako “kafelek” */
 .sidebar a:first-child{
   padding: 12px;
 }
@@ -333,11 +295,7 @@ a.btn:active,
 }
 
 
-/* =========================
-   WIDGET BAR
-   ========================= */
 .widget-bar > div{
-  /* border: var(--border); */
   border-radius: var(--border-radius-var);
   margin-bottom: 10px;
   padding: 10px;
@@ -348,7 +306,6 @@ a.btn:active,
   font-weight: bold;
 }
 
-/* Search box */
 .searchbox-widget input{
   width: 100%;
   box-sizing: border-box;
@@ -374,7 +331,6 @@ a.btn:active,
   color: var(--font-color)
 }
 
-/* Category select */
 .categories-list-widget{
   display: grid;
   gap: 8px;
@@ -401,9 +357,6 @@ a.btn:active,
   box-shadow: var(--focus-ring);
 }
 
-/* =========================
-   FOOTER
-   ========================= */
 .footer{
   flex-shrink: 0;
   margin-top: auto;
@@ -414,14 +367,9 @@ a.btn:active,
   font-size: 12px;
 }
 
-/* =========================
-   POST PREVIEW (index)
-   ========================= */
 .post-preview{
   display: flex;
   gap: 16px;
-/* 
-  border: var(--border); */
   border-radius: var(--border-radius-var);
   background-color: var(--bg-color);
   margin-bottom: 20px;
@@ -483,7 +431,7 @@ a.btn:active,
 
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 6; /* ilość linii */
+  -webkit-line-clamp: 6;
   line-clamp: 6;
 
   overflow-wrap: anywhere;
@@ -499,9 +447,6 @@ a.btn:active,
 }
 .post-preview-readmore:hover{ text-decoration: underline; }
 
-/* =========================
-   POST CONTENT (detail)
-   ========================= */
 .post-content{
   font-family: Arial, sans-serif;
   font-size: 1rem;
@@ -551,7 +496,6 @@ a.btn:active,
   margin:0 ;
 }
 
-/* thumbnail inside post */
 .post-inside-thumbnail{
   max-width: 480px;
   float: left;
@@ -560,12 +504,8 @@ a.btn:active,
   margin-bottom: 16px;
 }
 
-/* float only for inside-thumbnail, NOT for preview */
 .post-thumbnail{ float: none; }
 
-/* =========================
-   TOC
-   ========================= */
 .toc{
   max-width: fit-content;
   float: right;
@@ -602,9 +542,6 @@ a.btn:active,
   padding-left: 20px;
 }
 
-/* =========================
-   PAGINATION (posts list)
-   ========================= */
 .pagination{
   text-align: center;
   margin: 16px 0;
@@ -616,9 +553,6 @@ a.btn:active,
 }
 .pagination strong{ margin: 0 5px; }
 
-/* =========================
-   SHARE MODAL + NOTICE TOAST
-   ========================= */
 .notice-toast{
   position: fixed;
   top: 20%;
@@ -690,9 +624,6 @@ a.btn:active,
   margin-bottom: 16px;
 }
 
-/* =========================
-   COMMENTS
-   ========================= */
 .comments-container{
   display: flex;
   gap: 16px;
@@ -770,7 +701,6 @@ a.btn:active,
   font-size: 0.95rem;
 }
 
-/* add-comment form */
 .add-comment, .contact-form{
   flex: 1;
   padding: 20px;
@@ -832,16 +762,6 @@ a.btn:active,
   font-weight: bold;
 }
 
-/* .contact-form {
-  padding-left: 0px;
-  padding-right: 0px;
-} */
-
-
-
-/* =========================
-   REACTIONS
-   ========================= */
 .reactions{
   display: flex;
   gap: 10px;
@@ -860,9 +780,6 @@ a.btn.share-link {
   width: 350px;
 }
 
-/* =========================
-   ERROR
-   ========================= */
 .error{
   text-align: center;
   justify-content: center;
@@ -878,9 +795,6 @@ a.btn.share-link {
   text-align: center;
 }
 
-/* =========================
-   RESPONSIVE
-   ========================= */
 @media (max-width: 980px){
   .layout{
     grid-template-columns: 1fr;
@@ -941,7 +855,7 @@ ul li::before{
 
 .post-content blockquote p{
   margin: 0;
-  text-indent: 0; /* żeby cytat nie miał akapitu */
+  text-indent: 0;
 }
 
 .post-content blockquote p + p{
@@ -965,11 +879,7 @@ ul li::before{
   font-weight: normal;
 }
 
-/* =========================
-   NEWSLETTER WIDGET
-   ========================= */
 .newsletter-widget{
-  /* border: var(--border); */
   border-radius: var(--border-radius-var);
   padding: 10px;
   background: transparent;
@@ -1008,7 +918,6 @@ ul li::before{
   box-shadow: var(--focus-ring);
 }
 
-/* global button style już masz, ale tu dociśnij szerokość */
 .newsletter-form button{
   width: 100%;
 }
@@ -1022,7 +931,6 @@ ul li::before{
   text-align: center;
 }
 
-/* “screen reader only” helper */
 .sr-only{
   position: absolute;
   width: 1px;
@@ -1035,7 +943,6 @@ ul li::before{
   border: 0;
 }
 
-/* Skip link: "Przejdź do treści" */
 .skip-link {
   position: absolute;
   top: 0.75rem;
@@ -1051,12 +958,10 @@ ul li::before{
   font-weight: 600;
   line-height: 1;
 
-  /* ukryj poza ekranem */
   transform: translateY(-200%);
   transition: transform 0.15s ease;
 }
 
-/* pokaż gdy użytkownik przechodzi tabem */
 .skip-link:focus,
 .skip-link:focus-visible {
   transform: translateY(0);
@@ -1064,12 +969,10 @@ ul li::before{
   outline-offset: 2px;
 }
 
-/* opcjonalnie: jeśli masz sticky header, to main nie "wchodzi" pod nagłówek */
 #main {
   scroll-margin-top: 1rem;
 }
 
-/* Sidebar – wyłącz globalne ikonki listy */
 .sidebar-nav ul,
 .sidebar-nav li{
   list-style: none;
@@ -1077,18 +980,18 @@ ul li::before{
 }
 
 .sidebar-nav li{
-  padding-left: 0; /* cofa wcięcie z globalnego ul li */
+  padding-left: 0;
 }
 
 .sidebar-nav li::before{
-  content: none !important;  /* usuwa pseudo-element z ikonką */
+  content: none !important;
   background: none !important;
   width: 0;
   height: 0;
 }
 
 .sidebar .total-posts-widget{
-  margin-top: auto;   /* wypycha na dół */
+  margin-top: auto;
   width: 100%;
 
   border: 1px solid var(--border-color);
@@ -1104,11 +1007,6 @@ ul li::before{
   padding-left: 28px;
 }
 
-/* =========================
-   COOKIE CONSENT – styled like .share-modal
-   ========================= */
-
-/* show/hide stays via [hidden] attribute */
 .cookie-consent[hidden]{
   display: none !important;
 }
@@ -1116,11 +1014,10 @@ ul li::before{
 .cookie-consent{
   position: fixed;
   inset: 0;
-  z-index: 10000; /* jak share-modal */
+  z-index: 10000; 
   display: block;
 }
 
-/* overlay identyczny jak .share-modal-overlay */
 .cookie-consent__overlay{
   position: fixed;
   inset: 0;
@@ -1129,7 +1026,6 @@ ul li::before{
   z-index: 1;
 }
 
-/* box identyczny jak .share-modal-content */
 .cookie-consent__box{
   position: relative;
   z-index: 10;
@@ -1148,7 +1044,7 @@ ul li::before{
 
 .cookie-consent__box h3{
   margin: 0;
-  margin-bottom: 16px; /* jak share-modal h1 */
+  margin-bottom: 16px;
 }
 
 .cookie-consent__text{
@@ -1157,14 +1053,11 @@ ul li::before{
   line-height: 1.6;
 }
 
-/* actions wyśrodkuj jak modal share */
 .cookie-consent__actions{
   display: flex;
   justify-content: center;
 }
 
-/* przycisk: korzysta z Twojego globalnego button look
-   + lekko podbijamy akcent jak w share linkach */
 .cookie-consent__btn{
   color: var(--highlight);
   font-weight: 700;
@@ -1174,7 +1067,6 @@ ul li::before{
   margin-bottom: 15px;
 }
 
-/* małe ekrany: ciaśniej (opcjonalnie) */
 @media (max-width: 420px){
   .cookie-consent__box{
     margin: 14vh auto;
@@ -1197,16 +1089,14 @@ ul li::before{
   background: center / contain no-repeat url("/static/divider-coin.png");
 }
 
-/* Zamiana wszystkich <hr> na divider z obrazka */
 hr{
   border: 0;
-  height: 50px;            /* dopasuj */
-  margin: 0px;        /* dopasuj */
+  height: 50px;           
+  margin: 0px;        
   background: center / contain no-repeat url("/static/divider-coin.png");
   scale: 70%
 }
 
-/* „stary” wygląd hr tylko tam, gdzie dodasz klasę */
 hr.hr-default{
   all: unset;
   display: block;
@@ -1220,15 +1110,11 @@ hr.hr-default{
   accent-color: var(--highlight);
 }
 
-/* =========================
-   MOBILE DRAWERS (sidebar + widgets)
-   ========================= */
 .mobile-topbar{
   display: none;
 }
 
 @media (max-width: 1280px){
-  /* pokazuj tylko treść domyślnie */
   .layout{
     grid-template-columns: 1fr;
   }
@@ -1241,13 +1127,11 @@ hr.hr-default{
     background: var(--bg-color);
   }
 
-  /* domyślnie schowane */
   .sidebar,
   .widget-bar{
     display: none;
   }
 
-  /* backdrop */
   .drawer-backdrop{
     position: fixed;
     inset: 0;
@@ -1256,7 +1140,6 @@ hr.hr-default{
     z-index: 9000;
   }
 
-  /* wspólne style drawera (bez display!) */
   body.drawer-open .sidebar,
   body.drawer-open .widget-bar{
     position: fixed;
@@ -1271,7 +1154,6 @@ hr.hr-default{
     overflow: auto;
   }
 
-  /* TYLKO aktywny panel ma się wyświetlać */
   body.drawer-sidebar .sidebar{
     display: block;
     left: 0;
@@ -1284,7 +1166,6 @@ hr.hr-default{
     background-color: var(--bg-color2);
   }
 
-  /* przyciski topbar w Twoim stylu guzików */
   .mobile-topbar__btn{
     width: 100%;
     justify-content: center;
@@ -1292,7 +1173,6 @@ hr.hr-default{
     font-weight: 800;
   }
 
-  /* blokuj scroll strony gdy drawer otwarty */
   body.drawer-open{
     overflow: hidden;
   }
@@ -1302,7 +1182,6 @@ hr.hr-default{
   }
 }
 
-/* Desktop: thumbnail ma zawsze stały rozmiar, niezależnie od resize okna */
 @media (min-width: 1281px){
   .post-preview-left{
     width: var(--thumb-size);
@@ -1312,14 +1191,9 @@ hr.hr-default{
     max-width: var(--thumb-size);
   }
 }
-
-
-
-  /* który drawer otwarty */
   body.drawer-sidebar .sidebar{ left: 0; background-color: var(--bg-color2) }
   body.drawer-widgets .widget-bar{ right: 0; background-color: var(--bg-color2) }
 
-  /* przyciski topbar w Twoim stylu guzików */
   .mobile-topbar__btn{
     width: 100%;
     justify-content: center;
@@ -1338,7 +1212,6 @@ hr.hr-default{
   }
 }
 
-/* Desktop: thumbnail ma zawsze stały rozmiar, niezależnie od resize okna */
 @media (min-width: 981px){
   .post-preview-left{
     width: var(--thumb-size);
@@ -1461,7 +1334,6 @@ hr.hr-default{
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ====== Gallery inside post ====== */
 .post-content .gallery {
   margin: 0;
   border-radius: 8px;
@@ -1494,7 +1366,6 @@ hr.hr-default{
   transition: transform 160ms ease, filter 160ms ease;
 }
 
-/* Hover/focus: lekko “premium”, ale bez przesady */
 .post-content .gallery-item:hover img {
   transform: scale(1.03);
   filter: brightness(0.98) contrast(1.02);
@@ -1504,7 +1375,6 @@ hr.hr-default{
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.25);
 }
 
-/* Jeśli chcesz delikatną ikonkę “powiększ” bez dodatkowego HTML */
 .post-content .gallery-item::after {
   content: "⤢";
   position: absolute;
@@ -1527,7 +1397,6 @@ hr.hr-default{
   transform: translateY(0);
 }
 
-/* Mobile: trochę mniejsze kafelki */
 @media (max-width: 420px) {
   .post-content .gallery {
     padding: 10px;
@@ -1543,19 +1412,17 @@ hr.hr-default{
     height: 150px;
   }
 }
-/* Obrazy w treści posta nie mogą wyjść poza kolumnę */
+
 .post-content img {
   max-width: 640px;
   height: auto;
   display: block;
 }
 
-/* Trochę oddechu */
 .post-content img {
   margin: 1rem auto;
 }
 
-/* Żeby szerokie obrazki nie robiły „schodków” przy zaokrągleniach itp. */
 .post-content img {
   border-radius: 12px;
 }
@@ -1586,24 +1453,24 @@ hr.hr-default{
 
 .related-card:hover{
   border-color: var(--highlight);
-  background: var(--btn-hover-bg); /* to samo co hover buttonów */
-  text-decoration: none; /* nie podkreślaj */
+  background: var(--btn-hover-bg); 
+  text-decoration: none;
 }
 
 .related-card:active{
-  transform: translateY(1px); /* jak button */
+  transform: translateY(1px); 
 }
 
 .related-card:focus,
 .related-card:focus-visible{
   outline: none;
   border-color: var(--highlight);
-  box-shadow: var(--focus-ring); /* jak button */
+  box-shadow: var(--focus-ring); 
 }
 
 .related-card__title{
   font-weight: normal;
-  color: var(--highlight); /* jak linki/akcent */
+  color: var(--highlight);
   line-height: 1.25;
 }
 
@@ -1613,7 +1480,6 @@ hr.hr-default{
   color: var(--dim-font);
 }
 
-/* mobile */
 @media (max-width: 800px){
   .related-grid{
     grid-template-columns: 1fr;
@@ -1636,20 +1502,25 @@ hr.hr-default{
 }
 
 .post-sources li{
-  padding-left: 0; /* u Ciebie globalnie li ma ikonę – tu to wyłączamy */
+  padding-left: 0; 
 }
 
 .post-sources li::before{
-  display: none; /* wyłącz ikonki listy w źródłach */
+  display: none; 
 }
 
 .post-meta-bottom{
   margin-top: 18px;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
   font-size: 0.85rem;
   color: var(--dim-font);
+}
+
+.post-tags p,
+.post-sources p {
+  display: inline;
 }
 
 .post-sources a,
@@ -1662,7 +1533,6 @@ hr.hr-default{
   padding-left: 18px;
 }
 
-/* wyłącz globalne ikonki list w źródłach */
 .post-sources li{
   padding-left: 0;
 }
@@ -1670,7 +1540,6 @@ hr.hr-default{
   display: none;
 }
 
-/* tagi jako małe “pigułki”, dalej w szarości */
 .tag-list{
   margin-top: 8px;
   display: flex;
@@ -1691,7 +1560,6 @@ hr.hr-default{
   border-color: var(--highlight);
 }
 
-/* mobile: pod sobą */
 @media (max-width: 800px){
   .post-meta-bottom{
     grid-template-columns: 1fr;
@@ -1699,7 +1567,7 @@ hr.hr-default{
 }
 
 .sidebar-social {
-  margin-top: auto;            /* jeśli sidebar jest flex-column */
+  margin-top: auto;  
   padding-top: 16px;
   display: flex;
   gap: 6px;

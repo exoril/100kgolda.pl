@@ -187,16 +187,14 @@
 
 <div class="categories-list-widget">
   <label for="categories-list">Serie</label>
-  <select id="categories-list" name="category"
-    onchange="if(this.value){ window.location.href='/seria/' + this.value; }">
-    <option value="">Wybierz...</option>
-
-    {% for s in series_list %}
-      <option value="{{ s.id }}" {% if s.id == selected_series %}selected{% endif %}>
-        {{ s.label }}
-      </option>
-    {% endfor %}
-  </select>
+  <select id="categories-list" onchange="if(this.value){ window.location.href='/seria/' + this.value; }">
+  <option value="">Wybierz...</option>
+  {% for s in series_list %}
+    <option value="{{ s.slug }}" {% if s.slug == selected_series %}selected{% endif %}>
+      {{ s.name }}
+    </option>
+  {% endfor %}
+</select>
 </div>
 
 

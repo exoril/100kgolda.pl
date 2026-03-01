@@ -344,6 +344,14 @@ def inject_gallery_placeholders(post_html: str, gallery_items: list[dict]) -> st
 
     return str(soup)
 
+def slugify(text: str) -> str:
+    text = (text or "").strip().lower()
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"[^a-z0-9\s-]", "", text)   # usuń znaki poza a-z0-9 spacja i -
+    text = re.sub(r"[\s_-]+", "-", text).strip("-")
+    return text
+
 def _as_list(v):
     if v is None:
         return []
@@ -626,6 +634,20 @@ async def get_popular_tags(limit: int = 10) -> list[str]:
 
 _SERIES_CACHE: Dict[str, Optional[Dict[str, Any]]] = {}
 
+async def get_series_by_slug(slug: str) -> Optional[Dict[str, Any]]:
+    slug = pb_escape(slug)
+    data = await pb_get(
+        f"/api/collections/{SERIES_COLLECTION}/records",
+        params={
+            "page": 1,
+            "perPage": 1,
+            "filter": f'slug="{slug}"',
+            "fields": "id,name,slug",
+        },
+    )
+    items = data.get("items") or []
+    return items[0] if items else None
+
 
 async def get_series_by_id(series_id: str) -> Optional[Dict[str, Any]]:
     if not series_id:
@@ -691,11 +713,11 @@ async def get_public_widgets_cached() -> Dict[str, Any]:
 
     top_posts = _cache_get("public:top_posts", TTL_TOP_POSTS)
     if top_posts is None:
-        top_posts = _cache_set("public:top_posts", await get_top_posts(limit=5))
+        top_posts = _cache_set("public:top_posts", await get_top_posts(limit=3))
 
     top_commented = _cache_get("public:top_commented", TTL_TOP_COMMENTED)
     if top_commented is None:
-        top_commented = _cache_set("public:top_commented", await get_top_commented(limit=5))
+        top_commented = _cache_set("public:top_commented", await get_top_commented(limit=3))
 
     post_count = _cache_get("public:post_count", TTL_POST_COUNT)
     if post_count is None:
@@ -801,33 +823,22 @@ def build_pagination_html(request: Request, pagination: Dict[str, Any]) -> str:
     return "".join(parts)
 
 async def get_series_list() -> List[Dict[str, str]]:
-    """
-    Zwraca listę serii do widgetu.
-    W kolekcji `series` używa wyłącznie pola `name`.
-    """
     data = await pb_get(
         f"/api/collections/{SERIES_COLLECTION}/records",
-        params={
-            "page": 1,
-            "perPage": 200,
-            "fields": "id,name",
-        },
+        params={"page": 1, "perPage": 200, "fields": "id,name,slug"},
     )
 
     items = data.get("items") or []
     out: List[Dict[str, str]] = []
 
     for it in items:
-        sid = str(it.get("id") or "").strip()
         name = str(it.get("name") or "").strip()
-
-        # jeśli nie ma id lub name, pomijamy wpis (bo chcesz tylko name)
-        if not sid or not name:
+        slug = str(it.get("slug") or "").strip()
+        if not name or not slug:
             continue
+        out.append({"name": name, "slug": slug})
 
-        out.append({"id": sid, "label": name})
-
-    out.sort(key=lambda x: x["label"].lower())
+    out.sort(key=lambda x: x["name"].lower())
     return out
 
 
@@ -859,22 +870,17 @@ async def get_posts_by_series(series_id: str, page: int, per_page: int) -> Tuple
     return posts, pagination
 
 
-@router.get("/seria/{series_id}", response_class=HTMLResponse)
-async def series_view(
-    request: Request,
-    series_id: str = Path(...),
-    page: int = Query(1),
-    per_page: int = Query(10, ge=1, le=50),
-):
+@router.get("/seria/{series_slug}", response_class=HTMLResponse)
+async def series_view(request: Request, series_slug: str, page: int = Query(1), per_page: int = Query(10, ge=1, le=50)):
     if page < 1:
         raise HTTPException(status_code=404)
 
-    # nazwa serii do nagłówka (w PB: id, name, suffix, description)
-    series_obj = await get_series_by_id(series_id)
-    if isinstance(series_obj, dict):
-        series_label = (series_obj.get("name") or "").strip() or series_id
-    else:
-        series_label = series_id
+    series_obj = await get_series_by_slug(series_slug)
+    if not series_obj:
+        raise HTTPException(status_code=404)
+
+    series_id = series_obj["id"]
+    series_label = (series_obj.get("name") or "").strip() or series_slug
 
     posts, pagination = await get_posts_by_series(series_id=series_id, page=page, per_page=per_page)
 
@@ -886,19 +892,17 @@ async def series_view(
     pag_ctx = build_pagination_context(request, pagination)
 
     return await render_template(
-    request,
-    "lista.html",
-    posts=posts,
-    query="",
-    context_name=f"seria:{series_id}",
-    selected_series=series_id,
-    series_label=series_label,
-    pagination=pagination,
-    pagination_html=pagination_html,
-    page_title="Seria",
-    page_heading=f'Seria: <strong>"{series_label or series_id}"</strong>',
-    **pag_ctx,
-)
+        request,
+        "lista.html",
+        posts=posts,
+        context_name=f"seria:{series_id}",
+        selected_series=series_slug,   # zaznaczenie w select
+        page_title="Seria",
+        page_heading=f'Seria: {series_label}',
+        pagination=pagination,
+        pagination_html=pagination_html,
+        **pag_ctx,
+    )
 
 async def get_categories() -> List[str]:
     data = await pb_get(
@@ -1338,7 +1342,7 @@ async def search_view(
         "lista.html",
         meta_robots="noindex,follow",
         page_title="Wyszukiwanie",
-        page_heading=f'Wyszukiwanie: <strong>"{query}"</strong>',
+        page_heading=f'Wyszukiwanie: {query}',
         query=query,
         query_input="",
         posts=posts,
@@ -1404,7 +1408,7 @@ async def tag_page(
         "total_items": data.get("totalItems", 0),
     },
     page_title="Tagi",
-    page_heading=f'Tag: <strong>"{tag}"</strong>',
+    page_heading=f'Tag: {tag}',
     **pag_ctx,
 )
 
@@ -1438,7 +1442,7 @@ async def category_view(
     pagination=pagination,
     pagination_html=pagination_html,
     page_title="Kategorie",
-    page_heading=f'Kategoria: <strong>"{category}"</strong>',
+    page_heading=f'Kategoria: {category}',
     **pag_ctx,
 )
 
@@ -1567,6 +1571,11 @@ async def kontakt_submit(
         _CONTACT_LAST[vid] = now
 
     return RedirectResponse(url="/kontakt?sent=1#kontakt", status_code=303)
+
+@router.get("/seria-id/{series_id}", response_class=HTMLResponse)
+async def series_view_by_id(request: Request, series_id: str, page: int = Query(1), per_page: int = Query(10, ge=1, le=50)):
+    # Twoja stara logika po ID (może renderować to samo "lista.html")
+    ...
 
 
 @router.post("/post/{slug}/comment")
