@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{# opcjonalnie: robots dla search (albo dla innych widoków) #}
+{% block meta_robots %}{{ meta_robots | default("", true) }}{% endblock %}
+
+{% block title %}{{ page_title | default("Wpisy", true) }}{% endblock %}
+
+{% block content %}
+  {% if page_heading is not none %}
+    <h1>
+      {{ page_heading | safe }}
+      {% if total_pages > 1 %}, strona: {{ page }}{% endif %}
+    </h1>
+  {% endif %}
+  {% if info_text %}<p>{{ info_text }}</p>{% endif %}
+
+  {% include "partials/post-list.html" with context %}
+{% endblock %}

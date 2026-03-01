@@ -886,17 +886,19 @@ async def series_view(
     pag_ctx = build_pagination_context(request, pagination)
 
     return await render_template(
-        request,
-        "seria.html",  # <-- TO JEST KLUCZOWA ZMIANA
-        posts=posts,
-        query="",
-        context_name=f"seria:{series_id}",
-        selected_series=series_id,
-        series_label=series_label,
-        pagination=pagination,
-        pagination_html=pagination_html,
-        **pag_ctx,
-    )
+    request,
+    "lista.html",
+    posts=posts,
+    query="",
+    context_name=f"seria:{series_id}",
+    selected_series=series_id,
+    series_label=series_label,
+    pagination=pagination,
+    pagination_html=pagination_html,
+    page_title="Seria",
+    page_heading=f'Seria: <strong>"{series_label or series_id}"</strong>',
+    **pag_ctx,
+)
 
 async def get_categories() -> List[str]:
     data = await pb_get(
@@ -1308,14 +1310,18 @@ async def search_view(
     if not query:
         return await render_template(
             request,
-            "szukaj.html",
-            query="",              # do tekstu "wyniki dla"
-            query_input="",        # do value w input
+            "lista.html",
+            meta_robots="noindex,follow",
+            page_title="Wyszukiwanie",
+            page_heading=None,      # nie pokazujemy <h1>
             posts=[],
             page=1,
             total_pages=1,
             pagination_html="",
             context_name="search",
+            query="",
+            query_input="",
+            info_text="Wpisz frazę w wyszukiwarkę.",
         )
 
     posts, pagination = await search_posts(query=query, page=page, per_page=per_page)
@@ -1329,9 +1335,12 @@ async def search_view(
 
     return await render_template(
         request,
-        "szukaj.html",
-        query=query,            # do wyświetlenia na stronie
-        query_input="",         # input zawsze pusty
+        "lista.html",
+        meta_robots="noindex,follow",
+        page_title="Wyszukiwanie",
+        page_heading=f'Wyszukiwanie: <strong>"{query}"</strong>',
+        query=query,
+        query_input="",
         posts=posts,
         pagination=pagination,
         pagination_html=pagination_html,
@@ -1383,22 +1392,24 @@ async def tag_page(
     })
 
     return await render_template(
-        request,
-        "tag.html",
-        posts=posts,
-        selected_tag=tag,
-        pagination_html=pagination_html,
-        pagination={
-            "page": page,
-            "per_page": per_page,
-            "total_pages": total_pages,
-            "total_items": data.get("totalItems", 0),
-        },
-        **pag_ctx,
-    )
+    request,
+    "lista.html",
+    posts=posts,
+    selected_tag=tag,
+    pagination_html=pagination_html,
+    pagination={
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "total_items": data.get("totalItems", 0),
+    },
+    page_title="Tagi",
+    page_heading=f'Tag: <strong>"{tag}"</strong>',
+    **pag_ctx,
+)
 
 
-@router.get("/kategorie/{category}", response_class=HTMLResponse)
+@router.get("/kategoria/{category}", response_class=HTMLResponse)
 async def category_view(
     request: Request,
     category: str,
@@ -1418,16 +1429,19 @@ async def category_view(
     pag_ctx = build_pagination_context(request, pagination)
 
     return await render_template(
-        request,
-        "kategorie.html",
-        posts=posts,
-        query="",
-        context_name=category,
-        selected_category=category,
-        pagination=pagination,
-        pagination_html=pagination_html,
-        **pag_ctx,
-    )
+    request,
+    "lista.html",
+    posts=posts,
+    query="",
+    context_name=category,
+    selected_category=category,
+    pagination=pagination,
+    pagination_html=pagination_html,
+    page_title="Kategorie",
+    page_heading=f'Kategoria: <strong>"{category}"</strong>',
+    **pag_ctx,
+)
+
 def _clean_header(value: str) -> str:
     return (value or "").replace("\r", " ").replace("\n", " ").strip()
 

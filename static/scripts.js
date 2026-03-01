@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sel.addEventListener("change", () => {
       const v = sel.value;
       if (!v) return;
-      window.location.href = "/kategorie/" + encodeURIComponent(v);
+      window.location.href = "/kategoria/" + encodeURIComponent(v);
     });
   });
 
